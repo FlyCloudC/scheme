@@ -1,10 +1,14 @@
 {
   "name": "FlyCloudC/scheme",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "readme": "README.md",
-  "repository": "",
+  "repository": "https://github.com/FlyCloudC/scheme",
   "license": "Apache-2.0",
-  "keywords": [],
-  "description": "",
+  "keywords": [
+    "scheme",
+    "s-expression",
+    "interpreter"
+  ],
+  "description": "A Scheme interpreter implemented in Moonbit for teaching purposes",
   "source": "src"
 }
