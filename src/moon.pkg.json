@@ -1,0 +1,6 @@
+{
+  "import": [
+    "FlyCloudC/scheme/symbol",
+    "FlyCloudC/scheme/tokenizer"
+  ]
+}
