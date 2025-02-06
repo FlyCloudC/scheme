@@ -1,8 +1,11 @@
 ///|
-pub fn VM::new(next : Inst, env : Environment) -> VM {
+pub fn VM::new(
+  inst~ : Inst = Halt,
+  env~ : Environment = Environment::base()
+) -> VM {
   { //
     acc: Value::default(),
-    next,
+    next: inst,
     env,
     rib: [],
     stack: None,

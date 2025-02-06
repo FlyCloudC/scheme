@@ -80,7 +80,7 @@ pub enum Inst {
 }
 
 ///|
-pub struct VM {
+pub(all) struct VM {
   mut acc : Value
   mut next : Inst
   mut env : Environment

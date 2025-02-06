@@ -5,7 +5,7 @@ fn run_and_print(code : String, env : Environment) -> String! {
   for exp in exps {
     let ei = compile(CoreForm::from_sexp!(exp.to_sexp()))
     try {
-      let vm = VM::new(ei, env)
+      let vm = VM::new(inst=ei, env~)
       vm.run_to_halt!()
       let v = vm.acc
       if v != Value::default() {
@@ -73,4 +73,32 @@ test "OOP" {
       #|
     ,
   )
+}
+
+test "example in README" {
+  let env = Environment::base()..add_number_primitive()
+  let code =
+    #|(define (fact x)
+    #|   (if (= x 0)
+    #|       1                      ; base case
+    #|       (* x (fact (- x 1))))) ; rec case
+    #|(fact 5)
+  let sexp = parse!(code)
+  let program = [ //
+    CoreForm::from_sexp!(sexp[0]),
+    CoreForm::from_sexp!(sexp[1]),
+  ]
+  let inst = program.map(compile)
+  // make VM, load "(define (fact x) ...)" and env
+  let vm = VM::new(inst=inst[0], env~)
+  // run, add "fact" to env
+  vm.run_to_halt!()
+  inspect!( //
+    vm.env.lookup!(Symbol::of("fact")),
+    content="#<procedure fact>",
+  )
+  // load and run "(fact 5)"
+  vm.next = inst[1]
+  vm.run_to_halt!()
+  inspect!(vm.acc, content="120")
 }
