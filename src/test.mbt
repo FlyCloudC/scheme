@@ -1,22 +1,19 @@
 ///|
-fn run_async(f : async () -> Unit) -> Unit = "%async.run"
-
-///|
 fn run_and_print(code : String, env : Environment) -> String! {
   let exps = parse!(code)
   let b = StringBuilder::new()
   for exp in exps {
-    let ei = analyze(CoreForm::from_sexp!(exp.to_sexp()))
-    run_async(fn() {
-      try {
-        match ei!!(env) {
-          Symbol(Symbol("done")) => ()
-          v => b..write_object(v).write_char('\n')
-        }
-      } catch {
-        e => b..write_object(e).write_char('\n')
+    let ei = compile(CoreForm::from_sexp!(exp.to_sexp()))
+    try {
+      let vm = VM::new(ei, env)
+      vm.run_to_halt!()
+      let v = vm.acc
+      if v != Value::default() {
+        b..write_object(v).write_char('\n')
       }
-    })
+    } catch {
+      e => b..write_object(e).write_char('\n')
+    }
   }
   b.to_string()
 }

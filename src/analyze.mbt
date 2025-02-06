@@ -1,78 +1,43 @@
 ///|
-pub fn analyze(self : CoreForm) -> async (Environment) -> Value!SchemeException {
-  analyze_with_name(self)
+fn compile(self : CoreForm) -> Inst {
+  analyze(self, Halt)
 }
 
 ///|
-pub fn analyze_with_name(
-  self : CoreForm,
-  name? : Symbol
-) -> async (Environment) -> Value!SchemeException {
+fn analyze(self : CoreForm, next : Inst) -> Inst {
+  analyze_with_name(self, next)
+}
+
+///|
+fn analyze_with_name(self : CoreForm, next : Inst, name? : Symbol) -> Inst {
   match self {
-    SelfEval(v) | Quote(v) => fn(_) { v }
-    Var(name) => fn(env) { env.lookup!(name) }
-    Lambda(var_names, body, ..) => {
-      let body = analyze(body)
-      fn(env) { Closure({ env, parm_names: var_names, body, name }) }
+    SelfEval(v) | Quote(v) => Const(v, next)
+    Var(name) => Refer(name, next)
+    Lambda(parm_names, body, ..) => {
+      let body = analyze(body, Return)
+      Close(fn(env) { { env, parm_names, body, name } }, next)
     }
     Begin(bodys, bodye) => {
-      let bodysi = bodys.map(analyze)
-      let bodyei = analyze_with_name(bodye, name?)
-      fn(env) {
-        for ei in bodysi {
-          ei!!(env) |> ignore
-        }
-        bodyei!!(env)
-      }
+      let bodyei = analyze_with_name(bodye, next, name?)
+      bodys.rev_fold(init=bodyei, fn { acc, x => analyze(x, acc) })
     }
     If(ep, et, ef) => {
-      let epi = analyze(ep)
-      let eti = analyze_with_name(et, name?)
+      let eti = analyze_with_name(et, next, name?)
       let efi = match ef {
-        Some(ef) => analyze_with_name(ef, name?)
-        None => fn(_) { Nil }
+        Some(ef) => analyze_with_name(ef, next, name?)
+        None => Const(Value::default(), next)
       }
-      fn(env) {
-        match epi!!(env) {
-          False => efi!!(env)
-          _ => eti!!(env)
-        }
-      }
+      analyze(ep, Branch(eti, efi))
     }
     Apply(f, args) => {
-      let fi = analyze(f)
-      let argsi = args.map(analyze)
       let length = args.length()
-      fn(env) {
-        let values = FixedArray::make(length, Nil)
-        for i in 0..<length {
-          values[i] = argsi[i]!!(env)
-        }
-        match fi!!(env) {
-          Closure({ env: saved_env, parm_names, body, name } as closure) => {
-            guard length == parm_names.length() else {
-              raise ArgumentCount(name)
-            }
-            body!!(saved_env.extend(parm_names, values, closure))
-          }
-          Primitive({ body, .. }) => body!(values)
-          v => raise CallNonProcedure(v)
-        }
-      }
+      let fi = analyze(f, Apply)
+      let argsi = args.rev_foldi(init=fi, fn {
+        i, acc, x => analyze(x, Arg(length - 1 - i, acc))
+      })
+      Frame(length, next, argsi)
     }
-    Set(name, e) => {
-      let ei = analyze(e)
-      fn(env) {
-        env.set_var!(name, ei!!(env))
-        Value::default()
-      }
-    }
-    Define(name, e) => {
-      let ei = analyze_with_name(e, name~)
-      fn(env) {
-        env.define_var(name, ei!!(env))
-        Value::default()
-      }
-    }
+    Set(name, e) => analyze(e, Set(name, next))
+    Define(name, e) => analyze_with_name(e, Define(name, next), name~)
   }
 }

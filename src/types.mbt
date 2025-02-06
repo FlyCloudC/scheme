@@ -15,7 +15,7 @@ pub(all) type! SchemeException {
 pub struct Closure {
   env : Environment
   parm_names : FixedArray[Symbol]
-  body : async (Environment) -> Value!SchemeException
+  body : Inst
   name : Symbol?
 }
 
@@ -59,6 +59,42 @@ pub enum CoreForm {
   Set(Symbol, CoreForm)
   Define(Symbol, CoreForm)
 } derive(Show)
+
+// -----------------------------
+// |            VM             |
+// -----------------------------
+
+///|
+pub enum Inst {
+  Halt
+  Const(Value, Inst)
+  Refer(Symbol, Inst)
+  Return
+  Close((Environment) -> Closure, Inst)
+  Branch(Inst, Inst)
+  Frame(Int, Inst, Inst)
+  Arg(Int, Inst)
+  Apply
+  Set(Symbol, Inst)
+  Define(Symbol, Inst)
+}
+
+///|
+pub struct VM {
+  mut acc : Value
+  mut next : Inst
+  mut env : Environment
+  mut rib : FixedArray[Value]
+  mut stack : Frame?
+}
+
+///|
+pub struct Frame {
+  ret : Inst
+  env : Environment
+  rib : FixedArray[Value]
+  stack : Frame?
+}
 
 // -----------------------------
 // |          Parse            |
