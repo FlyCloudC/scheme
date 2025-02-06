@@ -5,11 +5,11 @@ pub fn parse(code : String) -> Array[Value]!ParseException {
   } catch {
     _ => raise UnexpectedEndOfInput
   }
-  let mut i = 0
+  let mut current_pos = 0
   fn next() -> _!ParseException {
-    i += 1
-    if i < tokens.length() {
-      tokens[i]
+    current_pos += 1
+    if current_pos < tokens.length() {
+      tokens[current_pos]
     } else {
       raise UnexpectedEndOfInput
     }
@@ -64,14 +64,14 @@ pub fn parse(code : String) -> Array[Value]!ParseException {
   }
 
   let res = []
-  while i < tokens.length() {
-    res.push(parse_value!(tokens[i]))
-    i += 1
+  while current_pos < tokens.length() {
+    res.push(parse_value!(tokens[current_pos]))
+    current_pos += 1
   }
   res
 }
 
-test "fact" {
+test "parse then to_string = identify" {
   let a =
     #|(define (fact x)
     #|  (if (= x 0)
@@ -84,10 +84,29 @@ test "fact" {
   assert_eq!(sa, sa1)
 }
 
-test "dot" {
+test "parse list" {
+  inspect!(parse?("(1)"), content="Ok([(1)])")
+  inspect!(parse?("(2)("), content="Err(UnexpectedEndOfInput)")
+  inspect!(parse?("(3 (4 5)"), content="Err(UnexpectedEndOfInput)")
+  inspect!(parse?("(3 (4 5))"), content="Ok([(3 (4 5))])")
+  inspect!(parse?("(3 (4 5)))"), content="Err(UnexpectedToken(Rp))")
+}
+
+test "parse dot list" {
   inspect!(parse?("(1 2 . 3 4)"), content="Err(MoreThanOneAfterDot(Int(4)))")
   inspect!(parse?("(1 2 .)"), content="Err(MisTokenAfterDot)")
   inspect!(parse?("(1 2 . )"), content="Err(MisTokenAfterDot)")
   inspect!(parse!("(1 2 . 3)"), content="[(1 2 . 3)]")
   inspect!(parse!("(1 2 .3)"), content="[(1 2 . 3)]")
+}
+
+test "parse quote" {
+  inspect!(parse?("'"), content="Err(UnexpectedEndOfInput)")
+  inspect!(parse?("'a"), content="Ok([(quote a)])")
+  inspect!(parse?("'()"), content="Ok([(quote ())])")
+  inspect!(parse?("''a"), content="Ok([(quote (quote a))])")
+  inspect!(parse?("'(a 2)"), content="Ok([(quote (a 2))])")
+  inspect!(parse?("''(a 2)"), content="Ok([(quote (quote (a 2)))])")
+  inspect!(parse?("f'a"), content="Ok([f, (quote a)])")
+  inspect!(parse?("f'a'b"), content="Ok([f, (quote a), (quote b)])")
 }
