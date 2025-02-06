@@ -3,10 +3,7 @@ impl Default for CoreForm with default() { SelfEval(Nil) }
 
 ///|
 pub impl ToSexp for CoreForm with to_sexp(self) {
-  fn s(x) {
-    Value::Symbol(x)
-  }
-
+  let s = Value::symbol
   match self {
     SelfEval(v) => v
     Var(name) => Symbol(name)
@@ -35,15 +32,15 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
       Symbol(s) => Var(s)
       Pair(l, r) =>
         match l {
-          Symbol(Symbol(s) as name) =>
-            match s {
+          Symbol(s) =>
+            match s.to_string() {
               "quote" => to_quote!(r)
               "lambda" => to_lambda!(r)
               "begin" => to_seq!(r)
               "if" => to_if!(r)
               "set!" => to_set!(r)
               "define" => to_define!(r)
-              _ => Apply(Var(name), to_args!(r))
+              _ => Apply(Var(s), to_args!(r))
             }
           _ => Apply(to_core_from!(l), to_args!(r))
         }
@@ -67,7 +64,7 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
 
   fn valid_parms(parms) -> _!FromSexpError {
     let length = proper_list_length!(parms)
-    let res = FixedArray::make(length, Symbol::new("default_var_name"))
+    let res = FixedArray::make(length, Symbol::default())
     loop 0, parms {
       i, Pair(Symbol(s), r) => {
         for i in 0..<i {
@@ -113,7 +110,10 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
     match r {
       Pair(Pair(fname, parms), bodys) =>
         to_define!(
-          Pair(fname, Pair(Pair(Symbol("lambda"), Pair(parms, bodys)), Nil)),
+          Pair(
+            fname,
+            Pair(Pair(Value::symbol("lambda"), Pair(parms, bodys)), Nil),
+          ),
         )
       Pair(Symbol(name), Pair(e1, Nil)) => Define(name, to_core_from!(e1))
       _ => raise FromSexpError(exp)

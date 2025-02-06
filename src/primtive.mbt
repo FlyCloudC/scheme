@@ -1,15 +1,16 @@
 ///|
-fn type_error(name : Symbol) -> SchemeException {
-  TypeError(Some(name))
+fn type_error(name : String) -> SchemeException {
+  TypeError(Some(Symbol::of(name)))
 }
 
 ///|
 fn add_p_1(
   self : Environment,
-  m : Map[Symbol, (Value) -> Value!SchemeException]
+  m : Map[String, (Value) -> Value!SchemeException]
 ) -> Unit {
   let binds = self.binds
   for name, f in m {
+    let name = Symbol::of(name)
     binds[name] = Primitive({
       name,
       body: fn {
@@ -23,10 +24,11 @@ fn add_p_1(
 ///|
 fn add_p_2(
   self : Environment,
-  m : Map[Symbol, (Value, Value) -> Value!SchemeException]
+  m : Map[String, (Value, Value) -> Value!SchemeException]
 ) -> Unit {
   let binds = self.binds
   for name, f in m {
+    let name = Symbol::of(name)
     binds[name] = Primitive({
       name,
       body: fn {

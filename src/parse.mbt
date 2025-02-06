@@ -21,10 +21,10 @@ pub fn parse(code : String) -> Array[Value]!ParseException {
       SF => False
       Lp => parse_list!()
       SLp => parse_vector!()
-      Quote => Pair(Symbol("quote"), Pair(parse_value!(next!()), Nil))
+      Quote => Pair(Value::symbol("quote"), Pair(parse_value!(next!()), Nil))
       Int(i) => Int(i)
       Double(d) => Double(d)
-      Symbol(s) => Symbol(s)
+      Symbol(s) => Value::symbol(s)
       String(s) => String(s)
       Dot | Rp => raise UnexpectedToken(token)
     }

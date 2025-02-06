@@ -56,7 +56,7 @@ pub impl ToSexp for Json with to_sexp(self) {
     True => True
     False => False
     Number(x) => Int(x.to_int())
-    String(x) => Symbol(x)
+    String(x) => Value::symbol(x)
     Array(xs) => xs.to_sexp()
     Object({ "type": "inproper list", "ls": Array(xs), "r": r }) =>
       xs.rev_fold(init=r.to_sexp(), fn { acc, x => Pair(x.to_sexp(), acc) })
@@ -64,7 +64,7 @@ pub impl ToSexp for Json with to_sexp(self) {
     Object({ "type": "double", "value": Number(d) }) => Double(d)
     Object({ "type": "vector", "value": Array(arr) }) =>
       FixedArray::makei(arr.length(), fn(i) { arr[i].to_sexp() }) |> Vector
-    Object(m) => Pair(Symbol("object"), Pair(m.iter2().to_sexp(), Nil))
+    Object(m) => Pair(Value::symbol("object"), Pair(m.iter2().to_sexp(), Nil))
   }
 }
 
@@ -75,7 +75,7 @@ pub impl FromSexp for Json with from_sexp(self) {
     True => True
     False => False
     Int(x) => Number(x.to_double())
-    Symbol(Symbol(x)) => String(x)
+    Symbol(s) => String(s.to_string())
     Pair(l, r) => {
       let res = [Json::from_sexp!(l)]
       loop r {
@@ -116,8 +116,8 @@ test "json" {
     Double(1),
     Int(2),
     String("str"),
-    Symbol("sym"),
-    Pair(Pair(Symbol("a1"), Symbol("a2")), Symbol("b")),
+    Value::symbol("sym"),
+    Pair(Pair(Value::symbol("a1"), Value::symbol("a2")), Value::symbol("b")),
     Pair(Int(1), Pair(Int(2), Nil)),
   ])
   assert_eq!(s0, (s0 |> Json::from_sexp!()).to_sexp())

@@ -26,7 +26,7 @@ pub impl Show for Closure with output(self, logger) {
 // |           Value           |
 // +---------------------------+
 ///|
-pub impl Default for Value with default() { Symbol("done") }
+pub impl Default for Value with default() { Value::symbol("done") }
 
 ///|
 pub fn eq(self : Value, other : Value) -> Bool {
@@ -66,6 +66,11 @@ pub impl Show for Value with output(self, logger) {
     Closure(closure) => logger.write_object(closure)
     Vector(a) => logger.write_iter(a.iter(), prefix="#(", sep=" ", suffix=")")
   }
+}
+
+///|
+pub fn Value::symbol(s : String) -> Value {
+  Value::Symbol(Symbol::of(s))
 }
 
 ///|

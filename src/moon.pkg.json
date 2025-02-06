@@ -2,5 +2,10 @@
   "import": [
     "FlyCloudC/scheme/symbol",
     "FlyCloudC/scheme/tokenizer"
-  ]
+  ],
+  "link": {
+    "wasm-gc": {
+      "use-js-builtin-string": true
+    }
+  }
 }
