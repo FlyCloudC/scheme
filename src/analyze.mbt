@@ -1,5 +1,5 @@
 ///|
-fn compile(self : CoreForm) -> Inst {
+pub fn compile(self : CoreForm) -> Inst {
   analyze(self, Halt)
 }
 
