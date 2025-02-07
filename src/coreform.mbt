@@ -22,10 +22,10 @@ pub impl ToSexp for CoreForm with to_sexp(self) {
 }
 
 ///|
-pub impl FromSexp for CoreForm with from_sexp(self) { to_core_from!(self) }
+pub impl FromSexp for CoreForm with from_sexp(self) { to_core_form!(self) }
 
 ///|
-pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
+pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
   let exp = self
   fn go() -> CoreForm!FromSexpError {
     match exp {
@@ -42,7 +42,7 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
               "define" => to_define!(r)
               _ => Apply(Var(s), to_args!(r))
             }
-          _ => Apply(to_core_from!(l), to_args!(r))
+          _ => Apply(to_core_form!(l), to_args!(r))
         }
       Int(_) | Double(_) | True | False | String(_) => SelfEval(exp)
       _ => raise FromSexpError(exp)
@@ -87,21 +87,21 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
       raise FromSexpError(exp)
     }
     guard let (bodys, Pair(bodye, _)) = to_core_from_list!(r, length - 1)
-    Begin(bodys, to_core_from!(bodye))
+    Begin(bodys, to_core_form!(bodye))
   }
 
   fn to_if(r) -> _!FromSexpError {
     match r {
-      Pair(e1, Pair(e2, Nil)) => If(to_core_from!(e1), to_core_from!(e2), None)
+      Pair(e1, Pair(e2, Nil)) => If(to_core_form!(e1), to_core_form!(e2), None)
       Pair(e1, Pair(e2, Pair(e3, Nil))) =>
-        If(to_core_from!(e1), to_core_from!(e2), Some(to_core_from!(e3)))
+        If(to_core_form!(e1), to_core_form!(e2), Some(to_core_form!(e3)))
       _ => raise FromSexpError(exp)
     }
   }
 
   fn to_set(r) -> _!FromSexpError {
     match r {
-      Pair(Symbol(name), Pair(e1, Nil)) => Set(name, to_core_from!(e1))
+      Pair(Symbol(name), Pair(e1, Nil)) => Set(name, to_core_form!(e1))
       _ => raise FromSexpError(exp)
     }
   }
@@ -115,7 +115,7 @@ pub fn to_core_from(self : Value) -> CoreForm!FromSexpError {
             Pair(Pair(Value::symbol("lambda"), Pair(parms, bodys)), Nil),
           ),
         )
-      Pair(Symbol(name), Pair(e1, Nil)) => Define(name, to_core_from!(e1))
+      Pair(Symbol(name), Pair(e1, Nil)) => Define(name, to_core_form!(e1))
       _ => raise FromSexpError(exp)
     }
   }
@@ -143,7 +143,7 @@ fn to_core_from_list(
   let dist = FixedArray::make(length, CoreForm::default())
   for i = 0, r = ls; i < length; {
     guard let Pair(l, r) = r
-    dist[i] = to_core_from!(l)
+    dist[i] = to_core_form!(l)
     continue i + 1, r
   } else {
     (dist, r)
