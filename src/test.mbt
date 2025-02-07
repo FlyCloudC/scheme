@@ -2,7 +2,7 @@
 fn run_and_to_string(code : String, env : Environment) -> String! {
   let exps = parse!(code)
   let b = StringBuilder::new()
-  let vm = VM::new(inst=Halt, env~)
+  let vm = VM::new(env~)
   for exp in exps {
     vm.next = exp.to_core_form!().compile()
     vm.run_to_halt!()

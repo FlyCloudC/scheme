@@ -28,17 +28,17 @@ pub(all) struct Primitive {
 ///|
 pub(all) enum Value {
   Nil
+  True
+  False
   Pair(Value, Value)
   Int(Int)
   Double(Double)
-  True
-  False
   Symbol(Symbol)
   String(String)
+  Vector(FixedArray[Value])
   Primitive(Primitive)
   Closure(Closure)
-  Vector(FixedArray[Value])
-} derive(Eq)
+}
 
 ///|
 pub(all) struct Environment {

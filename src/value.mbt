@@ -1,16 +1,6 @@
 ///|
-pub impl Eq for Primitive with op_equal(self, other) {
-  physical_equal(self, other)
-}
-
-///|
 pub impl Show for Primitive with output(self, logger) {
   logger..write_string("#<procedure ")..write_object(self.name).write_char('>')
-}
-
-///|
-pub impl Eq for Closure with op_equal(self, other) {
-  physical_equal(self, other)
 }
 
 ///|
@@ -31,13 +21,39 @@ pub impl Default for Value with default() { Value::symbol("done") }
 ///|
 pub fn eq(self : Value, other : Value) -> Bool {
   match (self, other) {
-    (Nil, Nil) | (True, True) | (False, False) => true
-    (Pair(_) | Vector(_) | Primitive(_) | Closure(_), _) =>
+    (Nil | True | False | Pair(_) | Int(_) | Double(_) | String(_), _) =>
       physical_equal(self, other)
-    (Int(a), Int(b)) => a == b
-    (Double(a), Double(b)) => a == b
-    (Symbol(a), Symbol(b)) => a == b
+    (Symbol(a), Symbol(b)) => Symbol::op_equal(a, b)
+    (Vector(a), Vector(b)) => physical_equal(a, b)
+    (Primitive(a), Primitive(b)) => physical_equal(a, b)
+    (Closure(a), Closure(b)) => physical_equal(a, b)
     _ => false
+  }
+}
+
+///|
+impl Eq for Value with op_equal(self, other) {
+  match (self, other) {
+    (Nil, Nil) | (True, True) | (False, False) => true
+    (Int(a), Int(b)) => Int::op_equal(a, b)
+    (Double(a), Double(b)) => Double::op_equal(a, b)
+    (Symbol(a), Symbol(b)) => Symbol::op_equal(a, b)
+    (String(a), String(b)) => String::op_equal(a, b)
+    (Primitive(a), Primitive(b)) => physical_equal(a, b)
+    (Closure(a), Closure(b)) => physical_equal(a, b)
+    (Pair(_), Pair(_)) | (Vector(_), Vector(_)) => recur_equal(self, other)
+    _ => false
+  }
+}
+
+///|
+fn recur_equal(a : Value, b : Value) -> Bool {
+  // Todo: According to R7RS, equal must terminate
+  match (a, b) {
+    (Pair(la, ra), Pair(lb, rb)) =>
+      Value::op_equal(la, lb) && Value::op_equal(ra, rb)
+    (Vector(a), Vector(b)) => FixedArray::op_equal(a, b)
+    _ => panic()
   }
 }
 
