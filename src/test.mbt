@@ -3,7 +3,7 @@ fn run_and_print(code : String, env : Environment) -> String! {
   let exps = parse!(code)
   let b = StringBuilder::new()
   for exp in exps {
-    let ei = compile(CoreForm::from_sexp!(exp.to_sexp()))
+    let ei = exp.to_core_from!().compile()
     try {
       let vm = VM::new(inst=ei, env~)
       vm.run_to_halt!()
@@ -85,8 +85,8 @@ test "example in README" {
     #|(fact 5)
   let sexp = parse!(code)
   let program = [ //
-    CoreForm::from_sexp!(sexp[0]),
-    CoreForm::from_sexp!(sexp[1]),
+    sexp[0].to_core_from!(),
+    sexp[1].to_core_from!(),
   ]
   let inst = program.map(compile)
   // make VM, load "(define (fact x) ...)" and env

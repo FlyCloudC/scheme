@@ -21,8 +21,8 @@ test "example in README" {
     #|(fact 5)
   let sexp = parse!(code)
   let program = [ //
-    CoreForm::from_sexp!(sexp[0]),
-    CoreForm::from_sexp!(sexp[1]),
+    sexp[0].to_core_form!(),
+    sexp[1].to_core_form!(),
   ]
   let inst = program.map(compile)
   // make VM, load "(define (fact x) ...)" and env
