@@ -7,5 +7,6 @@
     "wasm-gc": {
       "use-js-builtin-string": true
     }
-  }
+  },
+  "test-import-all": false
 }

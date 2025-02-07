@@ -1,25 +1,21 @@
 ///|
-fn run_and_print(code : String, env : Environment) -> String! {
+fn run_and_to_string(code : String, env : Environment) -> String! {
   let exps = parse!(code)
   let b = StringBuilder::new()
+  let vm = VM::new(inst=Halt, env~)
   for exp in exps {
-    let ei = exp.to_core_form!().compile()
-    try {
-      let vm = VM::new(inst=ei, env~)
-      vm.run_to_halt!()
-      let v = vm.acc
-      if v != Value::default() {
-        b..write_object(v).write_char('\n')
-      }
-    } catch {
-      e => b..write_object(e).write_char('\n')
+    vm.next = exp.to_core_form!().compile()
+    vm.run_to_halt!()
+    if vm.acc != Value::default() {
+      b.write_object(vm.acc)
+      b.write_char('\n')
     }
   }
   b.to_string()
 }
 
 test "fact" {
-  let env0 = Environment::base()..add_number_primitive()
+  let env = Environment::base()..add_number_primitive()
   let program =
     #|(+ 1 (* 2 3))
     #|(define (fact x)
@@ -28,7 +24,7 @@ test "fact" {
     #|       (* x (fact (- x 1))))) ; rec case
     #|(fact 5)
   program
-  |> run_and_print!(env0)
+  |> run_and_to_string!(env)
   |> inspect!(
     content=
       #|7
@@ -39,8 +35,8 @@ test "fact" {
 }
 
 test "OOP" {
-  let env0 = Environment::base()..add_number_primitive()..add_base_primitive()
-  let program_0 =
+  let env = Environment::base()..add_number_primitive()..add_base_primitive()
+  let code0 =
     #|(define (make-account money)
     #|  (define (take x)
     #|    (set! money (- money x)))
@@ -50,8 +46,8 @@ test "OOP" {
     #|            ('error)))))
     #|(define a (make-account 100))
     #|(define b (make-account 1000))
-  program_0 |> run_and_print!(env0) |> inspect!(content="")
-  let program_1 =
+  code0 |> run_and_to_string!(env) |> inspect!(content="")
+  let code1 =
     #|(a 'look)
     #|(b 'look)
     #|((a 'take) 20)
@@ -60,8 +56,8 @@ test "OOP" {
     #|((b 'take) 30)
     #|(a 'look)
     #|(b 'look)
-  program_1
-  |> run_and_print!(env0)
+  code1
+  |> run_and_to_string!(env)
   |> inspect!(
     content=
       #|100
@@ -70,6 +66,48 @@ test "OOP" {
       #|1000
       #|80
       #|970
+      #|
+    ,
+  )
+}
+
+test "sort" {
+  let env = Environment::base() //
+    ..add_number_primitive()
+    ..add_pair_primitive()
+  let code0 =
+    #|(define (max2 a b)
+    #|  (if (> a b) a b))
+    #|
+    #|(define (max ls)
+    #|  (define (loop x ls)
+    #|    (if (null? ls)
+    #|        x
+    #|        (loop (max2 x (car ls))
+    #|              (cdr ls))))
+    #|  (loop (car ls) (cdr ls)))
+    #|
+    #|(define (remove x ls)
+    #|  (if (= x (car ls))
+    #|      (cdr ls)
+    #|      (cons (car ls)
+    #|            (remove x (cdr ls)))))
+    #|
+    #|(define (sort ls)
+    #|  (if (null? ls)
+    #|      '()
+    #|      (cons (max ls)
+    #|            (sort (remove (max ls) ls)))))
+  let code1 =
+    #|(define ls1 '(3 5 2 4 1))
+    #|ls1
+    #|(sort ls1)
+  run_and_to_string!(code0, env) |> ignore
+  run_and_to_string!(code1, env)
+  |> inspect!(
+    content=
+      #|(3 5 2 4 1)
+      #|(5 4 3 2 1)
       #|
     ,
   )
