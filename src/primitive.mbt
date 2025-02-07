@@ -40,13 +40,19 @@ fn add_p_2(
 }
 
 ///|
+/// `number?`
+/// 
+/// `~-` (minus by 0)
+/// 
+/// `+`, `-`, `*`, `/`
+/// 
+/// `=`, `>`, `<`
 pub fn add_number_primitive(self : Environment) -> Unit {
   self.add_p_1({
     "number?": fn {
       Int(_) | Double(_) => True
       _ => False
     },
-    // 相反数
     "~-": fn {
       Int(a) => Int(-a)
       Double(a) => Double(-a)
@@ -54,8 +60,6 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     },
   })
   self.add_p_2({
-    //加减乘除
-
     "+": fn {
       Int(a), Int(b) => Int(a + b)
       Double(a), Double(b) => Double(a + b)
@@ -91,9 +95,6 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Int(b), Double(a) => Double(a / b.to_double())
       _, _ => raise type_error("/")
     },
-
-    // 比较
-
     "=": fn {
       Int(a), Int(b) => Value::bool(a == b)
       Double(a), Double(b) => Value::bool(a == b)
@@ -119,6 +120,9 @@ pub fn add_number_primitive(self : Environment) -> Unit {
 }
 
 ///|
+/// `cons`, `car`, `cdr`
+/// 
+/// `null?`, `pair?`
 pub fn add_pair_primitive(self : Environment) -> Unit {
   self.add_p_1({
     "car": fn {
@@ -152,6 +156,7 @@ pub fn add_pair_primitive(self : Environment) -> Unit {
 // }
 
 ///|
+/// `eq?`
 pub fn add_base_primitive(self : Environment) -> Unit {
-  self.add_p_2({ "eq?": fn { a, b => Value::bool(a == b) } })
+  self.add_p_2({ "eq?": fn { a, b => Value::bool(eq(a, b)) } })
 }
