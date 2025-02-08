@@ -37,10 +37,15 @@ pub impl Show for Symbol with output(self, logger) {
 pub impl Show for Symbol with to_string(self) { map_sym_id_to_str[self._] }
 
 ///|
-let default_symbol : Symbol = Symbol::of("void")
+let default_symbol : Symbol = Symbol::of("default-symbol")
 
 ///|
 pub impl Default for Symbol with default() { default_symbol }
+
+test "symbol string" {
+  let s = "a中a🐇a"
+  assert_eq!(Symbol::of(s).to_string(), s)
+}
 
 test "symbol eq" {
   let a1 = Symbol::of("a")
