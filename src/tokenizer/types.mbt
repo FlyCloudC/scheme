@@ -1,6 +1,7 @@
 ///|
 pub type! ReadException {
   UnFinishString(String)
+  StringEscaping(String, Char)
   UnFinishSharp(Char?)
 } derive(Show)
 

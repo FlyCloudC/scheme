@@ -124,11 +124,23 @@ fn read_comment(self : Tokenizer) -> Unit {
 ///|
 fn read_string(self : Tokenizer) -> Token!ReadException {
   let b = StringBuilder::new()
-  loop self.peek_next() {
-    Some('"') => String(b.to_string())
+  loop self.peek() {
+    Some('\\') =>
+      match self..next().peek() {
+        Some('"' | '\\' as c) => {
+          b.write_char(c)
+          continue self..next().peek()
+        }
+        Some(c) => raise StringEscaping(b.to_string(), c)
+        None => raise UnFinishString(b.to_string())
+      }
+    Some('"') => {
+      self.next()
+      String(b.to_string())
+    }
     Some(c) => {
       b.write_char(c)
-      continue self.peek_next()
+      continue self..next().peek()
     }
     None => raise UnFinishString(b.to_string())
   }
@@ -149,12 +161,12 @@ fn read_symbol(self : Tokenizer, c : Char) -> Token {
 }
 
 test "fact" {
-  let a =
-    #|(define (fact x)
-    #|  (if (= x 0)
-    #|      1 ; base case
-    #|      (* x (fact (- x 1)))))
-  assert_eq!(read!(a), [
+  #|(define (fact x)
+  #|  (if (= x 0)
+  #|      1 ; base case
+  #|      (* x (fact (- x 1)))))
+  |> read!()
+  |> assert_eq!([
     Lp,
     Symbol("define"),
     Lp,
@@ -187,11 +199,12 @@ test "fact" {
 }
 
 test "special" {
-  let a =
-    #|'a
-    #|'(1 2 3)
-    #|#(a)
-  assert_eq!(read!(a), [
+  #|'a
+  #|'(1 2 3)
+  #|#(a)
+  #|("ada" 1.2 "wadwa\";;'")
+  |> read!()
+  |> assert_eq!([
     Quote,
     Symbol("a"),
     Quote,
@@ -203,5 +216,16 @@ test "special" {
     SLp,
     Symbol("a"),
     Rp,
+    Lp,
+    String("ada"),
+    Double(1.2),
+    String("wadwa\";;'"),
+    Rp,
   ])
+}
+
+test "unicode" {
+  #|(中 "🐇")
+  |> read!()
+  |> assert_eq!([Lp, Symbol("中"), String("🐇"), Rp])
 }
