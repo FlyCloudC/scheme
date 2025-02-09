@@ -90,6 +90,15 @@ fn apply(self : VM) -> Unit!SchemeException {
           self.rib[0] = Continuation(self.stack)
           self.apply!()
         }
+        Apply => {
+          guard let [f, v] = self.rib else { _ => raise ArgumentCount }
+          guard let (Nil, length) = list_tail_and_length(v) else {
+            _ => raise TypeError(1)
+          }
+          self.acc = f
+          self.rib = v.unsafe_to_fixedarray(length)
+          self.apply!()
+        }
       }
     Continuation(stack) => {
       guard let [v] = self.rib else { _ => raise ArgumentCount }

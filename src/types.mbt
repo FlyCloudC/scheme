@@ -23,6 +23,7 @@ pub struct Closure {
 pub(all) enum Primitive {
   Normal(name~ : Symbol, (FixedArray[Value]) -> Value!SchemeException)
   CallCC
+  Apply
 }
 
 ///|
