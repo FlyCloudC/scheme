@@ -110,6 +110,11 @@ pub fn Value::bool(b : Bool) -> Value {
 }
 
 ///|
+pub fn Value::list(vs : FixedArray[Value]) -> Value {
+  vs.rev_fold(init=Nil, fn { acc, x => Pair(x, acc) })
+}
+
+///|
 pub fn list_tail_and_length(self : Value) -> (Value, Int) {
   loop self, 0 {
     Pair(_, r), len => continue r, len + 1

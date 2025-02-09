@@ -37,6 +37,27 @@ fn add_p_2(
 }
 
 ///|
+fn add_p_3(
+  self : Environment,
+  m : Map[String, (Value, Value, Value) -> Value!SchemeException]
+) -> Unit {
+  self.add_primitives(m, fn(name, f3) {
+    Normal(name~, fn {
+      [v1, v2, v3] => f3!(v1, v2, v3)
+      _ => raise ArgumentCount
+    })
+  })
+}
+
+///|
+fn add_p_n(
+  self : Environment,
+  m : Map[String, (FixedArray[Value]) -> Value!SchemeException]
+) -> Unit {
+  self.add_primitives(m, fn(name, f) { Normal(name~, fn(args) { f!(args) }) })
+}
+
+///|
 /// `number?`
 /// 
 /// `~-` (minus by 0)
@@ -147,6 +168,7 @@ pub fn add_pair_primitive(self : Environment) -> Unit {
     },
   })
   self.add_p_2({ "cons": fn { l, r => Pair(l, r) } })
+  self.add_p_n({ "list": fn { args => Value::list(args) } })
 }
 
 ///|
@@ -155,9 +177,56 @@ pub fn add_pair_primitive(self : Environment) -> Unit {
 // }
 
 ///|
-// pub fn add_vector_primitive(self : Environment) -> Unit {
+/// `vector`, `vector?`, `make-vector`, `vector-length`
+/// 
+/// `vector-ref`, `vector-set!`
+pub fn add_vector_primitive(self : Environment) -> Unit {
+  fn make_vector(n, init) -> _!SchemeException {
+    guard let Int(n) = n else { _ => raise TypeError(0) }
+    guard n >= 0 else { raise InvalidArgument(0) }
+    Vector(FixedArray::make(n, init))
+  }
 
-// }
+  self.add_p_1({
+    "vector?": fn {
+      Vector(_) => True
+      _ => False
+    },
+    "vector-length": fn {
+      Vector(v) => Int(v.length())
+      _ => raise TypeError(0)
+    },
+  })
+  self.add_p_2({
+    "vector-ref": fn {
+      Vector(v), Int(i) => {
+        guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
+        v.unsafe_get(i)
+      }
+      Vector(_), _ => raise InvalidArgument(1)
+      _, _ => raise TypeError(0)
+    },
+  })
+  self.add_p_3({
+    "vector-set!": fn {
+      Vector(v), Int(i), x => {
+        guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
+        v[i] = x
+        Value::default()
+      }
+      Vector(_), _, _ => raise InvalidArgument(1)
+      _, _, _ => raise TypeError(0)
+    },
+  })
+  self.add_p_n({
+    "vector": fn { args => Vector(args) },
+    "make-vector": fn {
+      [n] => make_vector!(n, Int(0))
+      [n, init] => make_vector!(n, init)
+      _ => raise ArgumentCount
+    },
+  })
+}
 
 ///|
 /// `eq?`, `call/cc`
