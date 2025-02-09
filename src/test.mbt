@@ -140,3 +140,28 @@ test "example in README" {
   vm.run_to_halt!()
   inspect!(vm.acc, content="120")
 }
+
+test "proper tail call" {
+  let code =
+    #|((lambda (f) (f f))
+    #| (lambda (f) (f f)))
+  let inst_def_f = parse!(code)[0].to_core_form!().compile()
+  let vm = VM::new(inst=inst_def_f, env=Environment::base())
+  fn stack_length() {
+    loop vm.stack, 0 {
+      Some(s), i => continue s.stack, i + 1
+      None, i => i
+    }
+  }
+
+  for {
+    match vm.next {
+      Apply => break
+      _ => vm.run_one_step!()
+    }
+  }
+  let before = stack_length()
+  vm.run_one_step!()
+  let after = stack_length()
+  assert_eq!(before, after)
+}

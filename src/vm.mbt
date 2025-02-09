@@ -1,6 +1,6 @@
 ///|
 pub fn VM::new(
-  inst~ : Inst = Halt,
+  inst~ : Inst = Return,
   env~ : Environment = Environment::base()
 ) -> VM {
   { //
@@ -15,7 +15,6 @@ pub fn VM::new(
 ///|
 pub fn run_one_step(self : VM) -> Unit!SchemeException {
   match self.next {
-    Halt => ()
     Const(v, next) => {
       self.acc = v
       self.next = next
@@ -24,28 +23,34 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
       self.acc = self.env.lookup!(name)
       self.next = next
     }
-    Return => {
-      let saved_frame = self.stack.unwrap()
-      self.next = saved_frame.ret
-      self.env = saved_frame.env
-      self.rib = saved_frame.rib
-      self.stack = saved_frame.stack
-    }
+    Return =>
+      match self.stack {
+        None => () // Halt
+        Some(saved_frame) => {
+          self.next = saved_frame.ret
+          self.env = saved_frame.env
+          self.rib = saved_frame.rib
+          self.stack = saved_frame.stack
+        }
+      }
     Close(make_closure, next) => {
       self.acc = Closure(make_closure(self.env))
       self.next = next
     }
     Branch(nt, nf) =>
       self.next = match self.acc {
-        True => nt
-        _ => nf
+        False => nf
+        _ => nt
       }
-    Frame(args_length, ret, next) => {
+    Save(next, ret) => {
       self.stack = Some({ ret, env: self.env, rib: self.rib, stack: self.stack })
+      self.next = next
+    }
+    Args(args_length, next) => {
       self.rib = FixedArray::make(args_length, Value::default())
       self.next = next
     }
-    Arg(i, next) => {
+    Push(i, next) => {
       self.rib[i] = self.acc
       self.next = next
     }
@@ -79,11 +84,10 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
 
 ///|
 pub fn run_to_halt(self : VM) -> Unit!SchemeException {
-  loop self.next {
-    Halt => break
-    _ => {
-      self.run_one_step!()
-      continue self.next
+  for {
+    match (self.next, self.stack) {
+      (Return, None) => break
+      _ => self.run_one_step!()
     }
   }
 }

@@ -1,6 +1,6 @@
 ///|
 pub fn compile(self : CoreForm) -> Inst {
-  analyze(self, Halt)
+  analyze(self, Return)
 }
 
 ///|
@@ -32,10 +32,16 @@ fn analyze_with_name(self : CoreForm, next : Inst, name? : Symbol) -> Inst {
     Apply(f, args) => {
       let length = args.length()
       let fi = analyze(f, Apply)
-      let argsi = args.rev_foldi(init=fi, fn {
-        i, acc, x => analyze(x, Arg(length - 1 - i, acc))
-      })
-      Frame(length, next, argsi)
+      let argsi = Args(
+        length,
+        args.rev_foldi(init=fi, fn {
+          i, acc, x => analyze(x, Push(length - 1 - i, acc))
+        }),
+      )
+      match next {
+        Return => argsi
+        _ => Save(argsi, next)
+      }
     }
     Set(name, e) => analyze(e, Set(name, next))
     Define(name, e) => analyze_with_name(e, Define(name, next), name~)

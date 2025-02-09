@@ -66,14 +66,14 @@ pub enum CoreForm {
 
 ///|
 pub enum Inst {
-  Halt
   Const(Value, Inst)
   Refer(Symbol, Inst)
   Return
   Close((Environment) -> Closure, Inst)
   Branch(Inst, Inst)
-  Frame(Int, Inst, Inst)
-  Arg(Int, Inst)
+  Save(Inst, Inst)
+  Args(Int, Inst)
+  Push(Int, Inst)
   Apply
   Set(Symbol, Inst)
   Define(Symbol, Inst)
