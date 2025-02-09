@@ -101,7 +101,7 @@ pub impl FromSexp for Json with from_sexp(self) {
       }
       { "type": "vector", "value": Array(res) }
     }
-    Closure(_) | Primitive(_) => raise FromSexpError(self)
+    Closure(_) | Primitive(_) | Continuation(_) => raise FromSexpError(self)
   }
 }
 

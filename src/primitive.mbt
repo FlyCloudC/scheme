@@ -11,13 +11,12 @@ fn add_p_1(
   let binds = self.binds
   for name, f in m {
     let name = Symbol::of(name)
-    binds[name] = Primitive({
-      name,
-      body: fn {
+    binds[name] = Primitive(
+      Normal(name~, fn {
         [a] => f!(a)
         _ => raise ArgumentCount(Some(name))
-      },
-    })
+      }),
+    )
   }
 }
 
@@ -29,13 +28,12 @@ fn add_p_2(
   let binds = self.binds
   for name, f in m {
     let name = Symbol::of(name)
-    binds[name] = Primitive({
-      name,
-      body: fn {
+    binds[name] = Primitive(
+      Normal(name~, fn {
         [a, b] => f!(a, b)
         _ => raise ArgumentCount(Some(name))
-      },
-    })
+      }),
+    )
   }
 }
 
@@ -156,7 +154,8 @@ pub fn add_pair_primitive(self : Environment) -> Unit {
 // }
 
 ///|
-/// `eq?`
+/// `eq?`, `call/cc`
 pub fn add_base_primitive(self : Environment) -> Unit {
   self.add_p_2({ "eq?": fn { a, b => Value::bool(eq(a, b)) } })
+  self.binds[CallCC.name()] = Primitive(CallCC)
 }

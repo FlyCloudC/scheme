@@ -1,6 +1,17 @@
 ///|
+pub fn Primitive::name(self : Primitive) -> Symbol {
+  match self {
+    Normal(_, name~) => name
+    CallCC => Symbol::of("call/cc")
+  }
+}
+
+///|
 pub impl Show for Primitive with output(self, logger) {
-  logger..write_string("#<procedure ")..write_object(self.name).write_char('>')
+  logger
+  ..write_string("#<procedure ")
+  ..write_object(self.name())
+  .write_char('>')
 }
 
 ///|
@@ -80,6 +91,7 @@ pub impl Show for Value with output(self, logger) {
     String(s) => logger.write_object(s)
     Primitive(prim) => logger.write_object(prim)
     Closure(closure) => logger.write_object(closure)
+    Continuation(_) => logger.write_string("#<continuation>")
     Vector(a) => logger.write_iter(a.iter(), prefix="#(", sep=" ", suffix=")")
   }
 }

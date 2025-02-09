@@ -54,21 +54,7 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
       self.rib[i] = self.acc
       self.next = next
     }
-    Apply =>
-      match self.acc {
-        Closure(clo) => {
-          guard self.rib.length() == clo.parm_names.length() else {
-            raise ArgumentCount(clo.name)
-          }
-          self.env = clo.env.extend(clo.parm_names, self.rib, clo)
-          self.next = clo.body
-        }
-        Primitive({ body, .. }) => {
-          self.acc = body!(self.rib)
-          self.next = Return
-        }
-        v => raise CallNonProcedure(v)
-      }
+    Apply => self.apply!()
     Set(name, next) => {
       self.env.set_var!(name, self.acc)
       self.acc = Value::default()
@@ -79,6 +65,41 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
       self.acc = Value::default()
       self.next = next
     }
+  }
+}
+
+///|
+fn apply(self : VM) -> Unit!SchemeException {
+  match self.acc {
+    Closure(clo) => {
+      guard self.rib.length() == clo.parm_names.length() else {
+        raise ArgumentCount(clo.name)
+      }
+      self.env = clo.env.extend(clo.parm_names, self.rib, clo)
+      self.next = clo.body
+    }
+    Primitive(p) =>
+      match p {
+        Normal(body, ..) => {
+          self.acc = body!(self.rib)
+          self.next = Return
+        }
+        CallCC => {
+          guard let [f] = self.rib else {
+            _ => raise ArgumentCount(Some(CallCC.name()))
+          }
+          self.acc = f
+          self.rib[0] = Continuation(self.stack)
+          self.apply!()
+        }
+      }
+    Continuation(stack) => {
+      guard let [v] = self.rib else { _ => raise ArgumentCount(None) }
+      self.acc = v
+      self.stack = stack
+      self.next = Return
+    }
+    v => raise CallNonProcedure(v)
   }
 }
 

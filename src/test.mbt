@@ -1,3 +1,31 @@
+test "example in README" {
+  let env = Environment::base()..add_number_primitive()
+  let code =
+    #|(define (fact x)
+    #|   (if (= x 0)
+    #|       1                      ; base case
+    #|       (* x (fact (- x 1))))) ; rec case
+    #|(fact 5)
+  let sexp = parse!(code)
+  let program = [ //
+    sexp[0].to_core_form!(),
+    sexp[1].to_core_form!(),
+  ]
+  let inst = program.map(compile)
+  // make VM, load "(define (fact x) ...)" and env
+  let vm = VM::new(inst=inst[0], env~)
+  // run, add "fact" to env
+  vm.run_to_halt!()
+  inspect!( //
+    vm.env.lookup!(Symbol::of("fact")),
+    content="#<procedure fact>",
+  )
+  // load and run "(fact 5)"
+  vm.next = inst[1]
+  vm.run_to_halt!()
+  inspect!(vm.acc, content="120")
+}
+
 ///|
 fn run_and_to_string(code : String, env : Environment) -> String! {
   let exps = parse!(code)
@@ -113,34 +141,6 @@ test "sort" {
   )
 }
 
-test "example in README" {
-  let env = Environment::base()..add_number_primitive()
-  let code =
-    #|(define (fact x)
-    #|   (if (= x 0)
-    #|       1                      ; base case
-    #|       (* x (fact (- x 1))))) ; rec case
-    #|(fact 5)
-  let sexp = parse!(code)
-  let program = [ //
-    sexp[0].to_core_form!(),
-    sexp[1].to_core_form!(),
-  ]
-  let inst = program.map(compile)
-  // make VM, load "(define (fact x) ...)" and env
-  let vm = VM::new(inst=inst[0], env~)
-  // run, add "fact" to env
-  vm.run_to_halt!()
-  inspect!( //
-    vm.env.lookup!(Symbol::of("fact")),
-    content="#<procedure fact>",
-  )
-  // load and run "(fact 5)"
-  vm.next = inst[1]
-  vm.run_to_halt!()
-  inspect!(vm.acc, content="120")
-}
-
 test "proper tail call" {
   let code =
     #|((lambda (f) (f f))
@@ -164,4 +164,51 @@ test "proper tail call" {
   vm.run_one_step!()
   let after = stack_length()
   assert_eq!(before, after)
+}
+
+test "call/cc 1" {
+  let env = Environment::base()..add_base_primitive()..add_pair_primitive()
+  let code =
+    #|(define *k* #f)
+    #|(cons 1 (call/cc (lambda (k) (set! *k* k) 2)))
+    #|*k*
+    #|(*k* 3)
+    #|
+  code
+  |> run_and_to_string!(env)
+  |> inspect!(
+    content=
+      #|(1 . 2)
+      #|#<continuation>
+      #|(1 . 3)
+      #|
+    ,
+  )
+}
+
+test "call/cc 2" {
+  let env = Environment::base()..add_base_primitive()..add_pair_primitive()
+  let code =
+    #|(define (for-each ls f)
+    #|  (if (pair? ls)
+    #|      (begin (f (car ls))
+    #|             (for-each (cdr ls) f))))
+    #|
+    #|(define (find x ls)
+    #|  (call/cc (lambda (return)
+    #|    (for-each ls (lambda (y)
+    #|      (if (eq? x y) (return #t))))
+    #|    #f)))
+    #|
+    #|(find 'b '(a b c))
+    #|(find 'd '(a b c))
+  code
+  |> run_and_to_string!(env)
+  |> inspect!(
+    content=
+      #|#t
+      #|#f
+      #|
+    ,
+  )
 }

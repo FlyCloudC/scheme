@@ -20,9 +20,9 @@ pub struct Closure {
 }
 
 ///|
-pub(all) struct Primitive {
-  body : (FixedArray[Value]) -> Value!SchemeException
-  name : Symbol
+pub(all) enum Primitive {
+  Normal(name~ : Symbol, (FixedArray[Value]) -> Value!SchemeException)
+  CallCC
 }
 
 ///|
@@ -38,6 +38,7 @@ pub(all) enum Value {
   Vector(FixedArray[Value])
   Primitive(Primitive)
   Closure(Closure)
+  Continuation(Frame?)
 }
 
 ///|
