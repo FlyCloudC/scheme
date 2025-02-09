@@ -5,26 +5,25 @@ pub fn compile(self : CoreForm) -> Inst {
 
 ///|
 fn analyze(self : CoreForm, next : Inst) -> Inst {
-  analyze_with_name(self, next)
-}
-
-///|
-fn analyze_with_name(self : CoreForm, next : Inst, name? : Symbol) -> Inst {
   match self {
     SelfEval(v) | Quote(v) => Const(v, next)
     Var(name) => Refer(name, next)
     Lambda(parm_names, body, ..) => {
       let body = analyze(body, Return)
+      let name = match next {
+        Define(name, _) | Set(name, _) => Some(name)
+        _ => None
+      }
       Close(parm_names, body, name, next)
     }
     Begin(bodys, bodye) => {
-      let bodyei = analyze_with_name(bodye, next, name?)
+      let bodyei = analyze(bodye, next)
       bodys.rev_fold(init=bodyei, fn { acc, x => analyze(x, acc) })
     }
     If(ep, et, ef) => {
-      let eti = analyze_with_name(et, next, name?)
+      let eti = analyze(et, next)
       let efi = match ef {
-        Some(ef) => analyze_with_name(ef, next, name?)
+        Some(ef) => analyze(ef, next)
         None => Const(Value::default(), next)
       }
       analyze(ep, Branch(eti, efi))
@@ -44,6 +43,6 @@ fn analyze_with_name(self : CoreForm, next : Inst, name? : Symbol) -> Inst {
       }
     }
     Set(name, e) => analyze(e, Set(name, next))
-    Define(name, e) => analyze_with_name(e, Define(name, next), name~)
+    Define(name, e) => analyze(e, Define(name, next))
   }
 }
