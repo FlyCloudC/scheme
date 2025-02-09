@@ -73,7 +73,7 @@ fn apply(self : VM) -> Unit!SchemeException {
   match self.acc {
     Closure(clo) => {
       guard self.rib.length() == clo.parm_names.length() else {
-        raise ArgumentCount(clo.name)
+        raise ArgumentCount
       }
       self.env = clo.env.extend(clo.parm_names, self.rib, clo)
       self.next = clo.body
@@ -85,21 +85,19 @@ fn apply(self : VM) -> Unit!SchemeException {
           self.next = Return
         }
         CallCC => {
-          guard let [f] = self.rib else {
-            _ => raise ArgumentCount(Some(CallCC.name()))
-          }
+          guard let [f] = self.rib else { _ => raise ArgumentCount }
           self.acc = f
           self.rib[0] = Continuation(self.stack)
           self.apply!()
         }
       }
     Continuation(stack) => {
-      guard let [v] = self.rib else { _ => raise ArgumentCount(None) }
+      guard let [v] = self.rib else { _ => raise ArgumentCount }
       self.acc = v
       self.stack = stack
       self.next = Return
     }
-    v => raise CallNonProcedure(v)
+    _ => raise CallNonProcedure
   }
 }
 

@@ -25,7 +25,7 @@ pub impl Show for Environment with output(self, logger) {
 pub fn lookup(self : Environment, name : Symbol) -> Value!SchemeException {
   match self.binds[name] {
     Some(x) => x
-    None => self.next.or_error!(UndefineVar(name)).lookup!(name)
+    None => self.next.or_error!(UndefineVar).lookup!(name)
   }
 }
 
@@ -37,7 +37,7 @@ pub fn set_var(
 ) -> Unit!SchemeException {
   match self.binds[name] {
     Some(_) => self.binds[name] = new_value
-    None => self.next.or_error!(UndefineVar(name)).set_var!(name, new_value)
+    None => self.next.or_error!(UndefineVar).set_var!(name, new_value)
   }
 }
 

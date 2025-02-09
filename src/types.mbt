@@ -3,11 +3,11 @@ typealias Symbol = @symbol.Symbol
 
 ///|
 pub(all) type! SchemeException {
-  InvalidArgument(FixedArray[Value])
-  UndefineVar(Symbol)
-  CallNonProcedure(Value)
-  ArgumentCount(Symbol?)
-  TypeError(Symbol?)
+  UndefineVar
+  CallNonProcedure
+  ArgumentCount
+  TypeError(Int)
+  InvalidArgument(Int)
   DevideZero
 } derive(Show)
 

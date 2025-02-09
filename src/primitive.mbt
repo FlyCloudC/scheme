@@ -1,6 +1,13 @@
 ///|
-fn type_error(name : String) -> SchemeException {
-  TypeError(Some(Symbol::of(name)))
+fn add_primitives[A](
+  self : Environment,
+  m : Map[String, A],
+  f : (Symbol, A) -> Primitive
+) -> Unit {
+  for k, v in m {
+    let s = Symbol::of(k)
+    self.binds[s] = Primitive(f(s, v))
+  }
 }
 
 ///|
@@ -8,16 +15,12 @@ fn add_p_1(
   self : Environment,
   m : Map[String, (Value) -> Value!SchemeException]
 ) -> Unit {
-  let binds = self.binds
-  for name, f in m {
-    let name = Symbol::of(name)
-    binds[name] = Primitive(
-      Normal(name~, fn {
-        [a] => f!(a)
-        _ => raise ArgumentCount(Some(name))
-      }),
-    )
-  }
+  self.add_primitives(m, fn(name, f1) {
+    Normal(name~, fn {
+      [v1] => f1!(v1)
+      _ => raise ArgumentCount
+    })
+  })
 }
 
 ///|
@@ -25,16 +28,12 @@ fn add_p_2(
   self : Environment,
   m : Map[String, (Value, Value) -> Value!SchemeException]
 ) -> Unit {
-  let binds = self.binds
-  for name, f in m {
-    let name = Symbol::of(name)
-    binds[name] = Primitive(
-      Normal(name~, fn {
-        [a, b] => f!(a, b)
-        _ => raise ArgumentCount(Some(name))
-      }),
-    )
-  }
+  self.add_primitives(m, fn(name, f2) {
+    Normal(name~, fn {
+      [v1, v2] => f2!(v1, v2)
+      _ => raise ArgumentCount
+    })
+  })
 }
 
 ///|
@@ -54,7 +53,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     "~-": fn {
       Int(a) => Int(-a)
       Double(a) => Double(-a)
-      _ => raise type_error("~-")
+      _ => raise TypeError(0)
     },
   })
   self.add_p_2({
@@ -63,21 +62,24 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Double(a), Double(b) => Double(a + b)
       Double(a), Int(b) => Double(a + b.to_double())
       Int(b), Double(a) => Double(a + b.to_double())
-      _, _ => raise type_error("+")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     "-": fn {
       Int(a), Int(b) => Int(a - b)
       Double(a), Double(b) => Double(a - b)
       Double(a), Int(b) => Double(a - b.to_double())
       Int(b), Double(a) => Double(a - b.to_double())
-      _, _ => raise type_error("-")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     "*": fn {
       Int(a), Int(b) => Int(a * b)
       Double(a), Double(b) => Double(a * b)
       Double(a), Int(b) => Double(a * b.to_double())
       Int(b), Double(a) => Double(a * b.to_double())
-      _, _ => raise type_error("*")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     "/": fn {
       Int(a), Int(b) => {
@@ -91,28 +93,32 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Double(a), Double(b) => Double(a / b)
       Double(a), Int(b) => Double(a / b.to_double())
       Int(b), Double(a) => Double(a / b.to_double())
-      _, _ => raise type_error("/")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     "=": fn {
       Int(a), Int(b) => Value::bool(a == b)
       Double(a), Double(b) => Value::bool(a == b)
       Double(a), Int(b) => Value::bool(a == b.to_double())
       Int(b), Double(a) => Value::bool(a == b.to_double())
-      _, _ => raise type_error("=")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     ">": fn {
       Int(a), Int(b) => Value::bool(a > b)
       Double(a), Double(b) => Value::bool(a > b)
       Double(a), Int(b) => Value::bool(a > b.to_double())
       Int(b), Double(a) => Value::bool(a > b.to_double())
-      _, _ => raise type_error(">")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
     "<": fn {
       Int(a), Int(b) => Value::bool(a < b)
       Double(a), Double(b) => Value::bool(a < b)
       Double(a), Int(b) => Value::bool(a < b.to_double())
       Int(b), Double(a) => Value::bool(a < b.to_double())
-      _, _ => raise type_error("<")
+      Int(_) | Double(_), _ => raise TypeError(1)
+      _, _ => raise TypeError(0)
     },
   })
 }
@@ -125,11 +131,11 @@ pub fn add_pair_primitive(self : Environment) -> Unit {
   self.add_p_1({
     "car": fn {
       Pair(l, _) => l
-      _ => raise type_error("car")
+      _ => raise TypeError(0)
     },
     "cdr": fn {
       Pair(_, r) => r
-      _ => raise type_error("cdr")
+      _ => raise TypeError(0)
     },
     "null?": fn {
       Nil => True
