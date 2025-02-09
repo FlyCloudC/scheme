@@ -33,8 +33,8 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
           self.stack = saved_frame.stack
         }
       }
-    Close(make_closure, next) => {
-      self.acc = Closure(make_closure(self.env))
+    Close(parm_names, body, name, next) => {
+      self.acc = Closure({ env: self.env, parm_names, body, name })
       self.next = next
     }
     Branch(nt, nf) =>
@@ -60,8 +60,8 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
           guard self.rib.length() == clo.parm_names.length() else {
             raise ArgumentCount(clo.name)
           }
-          self.next = clo.body
           self.env = clo.env.extend(clo.parm_names, self.rib, clo)
+          self.next = clo.body
         }
         Primitive({ body, .. }) => {
           self.acc = body!(self.rib)

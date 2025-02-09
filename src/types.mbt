@@ -69,7 +69,7 @@ pub enum Inst {
   Const(Value, Inst)
   Refer(Symbol, Inst)
   Return
-  Close((Environment) -> Closure, Inst)
+  Close(FixedArray[Symbol], Inst, Symbol?, Inst)
   Branch(Inst, Inst)
   Save(Inst, Inst)
   Args(Int, Inst)

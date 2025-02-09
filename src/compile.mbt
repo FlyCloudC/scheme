@@ -15,7 +15,7 @@ fn analyze_with_name(self : CoreForm, next : Inst, name? : Symbol) -> Inst {
     Var(name) => Refer(name, next)
     Lambda(parm_names, body, ..) => {
       let body = analyze(body, Return)
-      Close(fn(env) { { env, parm_names, body, name } }, next)
+      Close(parm_names, body, name, next)
     }
     Begin(bodys, bodye) => {
       let bodyei = analyze_with_name(bodye, next, name?)
