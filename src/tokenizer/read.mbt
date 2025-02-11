@@ -48,7 +48,7 @@ fn peek_next(self : Tokenizer) -> Char? {
 }
 
 ///|
-pub fn read(code : String) -> Array[Token]!ReadException {
+pub fn read(code : String) -> Array[(Token, Int, Int)]!ReadException {
   let self : Tokenizer = { i: 0, code, res: Array::new() }
   loop self.peek() {
     None => {
@@ -60,8 +60,10 @@ pub fn read(code : String) -> Array[Token]!ReadException {
       if c == ';' {
         self.read_comment()
       } else if not(is_space(c)) {
+        let begin = self.i - 1
         let next_token = self.read_next_token!(c)
-        self.res.push(next_token)
+        let end = self.i
+        self.res.push((next_token, begin, end))
       }
       continue self.peek()
     }
@@ -81,7 +83,7 @@ fn read_next_token(self : Tokenizer, c : Char) -> Token!ReadException {
         Some('(') => SLp
         Some('t') => ST
         Some('f') => SF
-        co => raise UnFinishSharp(co)
+        co => raise InvalidAfterSharp(co, self.i - 1)
       }
       self.next()
       c
@@ -123,6 +125,7 @@ fn read_comment(self : Tokenizer) -> Unit {
 
 ///|
 fn read_string(self : Tokenizer) -> Token!ReadException {
+  let begin = self.i - 1
   let b = StringBuilder::new()
   loop self.peek() {
     Some('\\') =>
@@ -131,8 +134,8 @@ fn read_string(self : Tokenizer) -> Token!ReadException {
           b.write_char(c)
           continue self..next().peek()
         }
-        Some(c) => raise StringEscaping(b.to_string(), c)
-        None => raise UnFinishString(b.to_string())
+        Some(c) => raise InvalidStringEscaping(b.to_string(), c, self.i)
+        None => raise UnterminatedString(b.to_string(), begin)
       }
     Some('"') => {
       self.next()
@@ -142,7 +145,7 @@ fn read_string(self : Tokenizer) -> Token!ReadException {
       b.write_char(c)
       continue self..next().peek()
     }
-    None => raise UnFinishString(b.to_string())
+    None => raise UnterminatedString(b.to_string(), begin)
   }
 }
 
@@ -168,34 +171,34 @@ test "fact" {
   #|      (* x (fact (- x 1)))))
   |> read!()
   |> assert_eq!([
-    Lp,
-    Symbol("define"),
-    Lp,
-    Symbol("fact"),
-    Symbol("x"),
-    Rp,
-    Lp,
-    Symbol("if"),
-    Lp,
-    Symbol("="),
-    Symbol("x"),
-    Int(0),
-    Rp,
-    Int(1),
-    Lp,
-    Symbol("*"),
-    Symbol("x"),
-    Lp,
-    Symbol("fact"),
-    Lp,
-    Symbol("-"),
-    Symbol("x"),
-    Int(1),
-    Rp,
-    Rp,
-    Rp,
-    Rp,
-    Rp,
+    (Lp, 0, 1),
+    (Symbol("define"), 1, 7),
+    (Lp, 8, 9),
+    (Symbol("fact"), 9, 13),
+    (Symbol("x"), 14, 15),
+    (Rp, 15, 16),
+    (Lp, 19, 20),
+    (Symbol("if"), 20, 22),
+    (Lp, 23, 24),
+    (Symbol("="), 24, 25),
+    (Symbol("x"), 26, 27),
+    (Int(0), 28, 29),
+    (Rp, 29, 30),
+    (Int(1), 37, 38),
+    (Lp, 57, 58),
+    (Symbol("*"), 58, 59),
+    (Symbol("x"), 60, 61),
+    (Lp, 62, 63),
+    (Symbol("fact"), 63, 67),
+    (Lp, 68, 69),
+    (Symbol("-"), 69, 70),
+    (Symbol("x"), 71, 72),
+    (Int(1), 73, 74),
+    (Rp, 74, 75),
+    (Rp, 75, 76),
+    (Rp, 76, 77),
+    (Rp, 77, 78),
+    (Rp, 78, 79),
   ])
 }
 
@@ -207,22 +210,22 @@ test "special" {
   #|("ada" 1.2 "wadwa\";;'")
   |> read!()
   |> assert_eq!([
-    Quote,
-    Symbol("a"),
-    Quote,
-    Lp,
-    Int(1),
-    Int(2),
-    Int(3),
-    Rp,
-    SLp,
-    Symbol("a"),
-    Rp,
-    Lp,
-    String("ada"),
-    Double(1.2),
-    String("wadwa\";;'"),
-    Rp,
+    (Quote, 0, 1),
+    (Symbol("a"), 1, 2),
+    (Quote, 3, 4),
+    (Lp, 4, 5),
+    (Int(1), 5, 6),
+    (Int(2), 7, 8),
+    (Int(3), 9, 10),
+    (Rp, 10, 11),
+    (SLp, 12, 14),
+    (Symbol("a"), 14, 15),
+    (Rp, 15, 16),
+    (Lp, 17, 18),
+    (String("ada"), 18, 23),
+    (Double(1.2), 24, 27),
+    (String("wadwa\";;'"), 28, 40),
+    (Rp, 40, 41),
   ])
 }
 
@@ -230,5 +233,10 @@ test "special" {
 test "unicode" {
   #|(中 "🐇")
   |> read!()
-  |> assert_eq!([Lp, Symbol("中"), String("🐇"), Rp])
+  |> assert_eq!([
+    (Lp, 0, 1),
+    (Symbol("中"), 1, 2),
+    (String("🐇"), 3, 6),
+    (Rp, 6, 7),
+  ])
 }

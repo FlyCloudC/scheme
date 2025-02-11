@@ -1,9 +1,9 @@
 ///|
 pub fn parse(code : String) -> Array[Value]!ParseException {
   let tokens = try {
-    @tokenizer.read!(code)
+    @tokenizer.read!(code).map(fn { (token, _, _) => token })
   } catch {
-    _ => raise UnexpectedEndOfInput
+    e => raise ReadException(e)
   }
   let mut current_pos = 0
   fn next() -> _!ParseException {

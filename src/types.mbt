@@ -111,4 +111,5 @@ pub type! ParseException {
   MoreThanOneAfterDot(Token)
   MisTokenAfterDot
   UnexpectedEndOfInput
+  ReadException(@tokenizer.ReadException)
 } derive(Show)

@@ -1,8 +1,8 @@
 ///|
 pub type! ReadException {
-  UnFinishString(String)
-  StringEscaping(String, Char)
-  UnFinishSharp(Char?)
+  UnterminatedString(String, Int)
+  InvalidStringEscaping(String, Char, Int)
+  InvalidAfterSharp(Char?, Int)
 } derive(Show)
 
 ///|
@@ -23,6 +23,6 @@ pub(all) enum Token {
 ///|
 priv struct Tokenizer {
   code : String
-  res : Array[Token]
+  res : Array[(Token, Int, Int)]
   mut i : Int
 } derive(Show)
