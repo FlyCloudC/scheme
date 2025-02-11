@@ -160,6 +160,7 @@ fn read_symbol(self : Tokenizer, c : Char) -> Token {
   Symbol(b.to_string())
 }
 
+///|
 test "fact" {
   #|(define (fact x)
   #|  (if (= x 0)
@@ -198,6 +199,7 @@ test "fact" {
   ])
 }
 
+///|
 test "special" {
   #|'a
   #|'(1 2 3)
@@ -224,6 +226,7 @@ test "special" {
   ])
 }
 
+///|
 test "unicode" {
   #|(中 "🐇")
   |> read!()

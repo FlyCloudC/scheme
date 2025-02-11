@@ -42,11 +42,13 @@ let default_symbol : Symbol = Symbol::of("default-symbol")
 ///|
 pub impl Default for Symbol with default() { default_symbol }
 
+///|
 test "symbol string" {
   let s = "a中a🐇a"
   assert_eq!(Symbol::of(s).to_string(), s)
 }
 
+///|
 test "symbol eq" {
   let a1 = Symbol::of("a")
   let bbbbb1 = Symbol::of("bbbbb")

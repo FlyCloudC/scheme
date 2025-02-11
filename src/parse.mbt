@@ -71,6 +71,7 @@ pub fn parse(code : String) -> Array[Value]!ParseException {
   res
 }
 
+///|
 test "parse then to_string = identify" {
   let a =
     #|(define (fact x)
@@ -84,6 +85,7 @@ test "parse then to_string = identify" {
   assert_eq!(sa, sa1)
 }
 
+///|
 test "parse list" {
   inspect!(parse?("(1)"), content="Ok([(1)])")
   inspect!(parse?("(2)("), content="Err(UnexpectedEndOfInput)")
@@ -92,6 +94,7 @@ test "parse list" {
   inspect!(parse?("(3 (4 5)))"), content="Err(UnexpectedToken(Rp))")
 }
 
+///|
 test "parse dot list" {
   inspect!(parse?("(1 2 . 3 4)"), content="Err(MoreThanOneAfterDot(Int(4)))")
   inspect!(parse?("(1 2 .)"), content="Err(MisTokenAfterDot)")
@@ -100,6 +103,7 @@ test "parse dot list" {
   inspect!(parse!("(1 2 .3)"), content="[(1 2 . 3)]")
 }
 
+///|
 test "parse quote" {
   inspect!(parse?("'"), content="Err(UnexpectedEndOfInput)")
   inspect!(parse?("'a"), content="Ok([(quote a)])")

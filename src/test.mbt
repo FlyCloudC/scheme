@@ -1,3 +1,4 @@
+///|
 test "example in README" {
   let env = Environment::base() //
   ..add_number_primitive()
@@ -43,6 +44,7 @@ fn run_and_to_string(code : String, env : Environment) -> String! {
   b.to_string()
 }
 
+///|
 test "fact" {
   let env = Environment::base() //
   ..add_number_primitive()
@@ -64,6 +66,7 @@ test "fact" {
   )
 }
 
+///|
 test "OOP" {
   let env = Environment::base() //
     ..add_number_primitive()
@@ -103,6 +106,7 @@ test "OOP" {
   )
 }
 
+///|
 test "sort" {
   let env = Environment::base() //
     ..add_number_primitive()
@@ -145,6 +149,7 @@ test "sort" {
   )
 }
 
+///|
 test "proper tail call" {
   let code =
     #|((lambda (f) (f f))
@@ -170,6 +175,7 @@ test "proper tail call" {
   assert_eq!(before, after)
 }
 
+///|
 test "call/cc 1" {
   let env = Environment::base() //
     ..add_other_primitive()
@@ -192,6 +198,7 @@ test "call/cc 1" {
   )
 }
 
+///|
 test "call/cc 2" {
   let env = Environment::base() //
     ..add_other_primitive()
@@ -221,6 +228,7 @@ test "call/cc 2" {
   )
 }
 
+///|
 test "apply" {
   let env = Environment::base()
     ..add_other_primitive()

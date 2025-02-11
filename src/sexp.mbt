@@ -105,6 +105,7 @@ pub impl FromSexp for Json with from_sexp(self) {
   }
 }
 
+///|
 test "json" {
   let j0 : Json = [
     "define",
