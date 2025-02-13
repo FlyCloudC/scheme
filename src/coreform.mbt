@@ -28,7 +28,7 @@ pub impl FromSexp for CoreForm with from_sexp(self) { to_core_form!(self) }
 pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
   let exp = self
   fn go() -> CoreForm!FromSexpError {
-    match exp {
+    match expand!(exp) {
       Symbol(s) => Var(s)
       Pair(l, r) =>
         match l {
@@ -44,7 +44,7 @@ pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
             }
           _ => Apply(to_core_form!(l), to_args!(r))
         }
-      Int(_) | Double(_) | True | False | String(_) => SelfEval(exp)
+      Int(_) | Double(_) | True | False | String(_) as e => SelfEval(e)
       _ => raise FromSexpError(exp)
     }
   }
@@ -148,4 +148,104 @@ fn to_core_from_list(
   } else {
     (dist, r)
   }
+}
+
+///|
+fn expand(self : Value) -> Value!FromSexpError {
+  let exp = self
+  fn go!() -> _!FromSexpError {
+    loop exp {
+      Pair(Symbol(s), body) as e =>
+        match s.to_string() {
+          "let" => continue expand_let!(body)
+          "cond" => continue expand_cond!(body)
+          "and" => continue expand_and!(body)
+          "or" => continue expand_or!(body)
+          _ => e
+        }
+      e => e
+    }
+  }
+
+  fn expand_let(body) -> _!FromSexpError {
+    guard let Pair(nvs, body) = body else { _ => raise FromSexpError(exp) }
+    fn split(nvs) -> (Value, Value)!FromSexpError {
+      match nvs {
+        Pair(Pair(n, Pair(v, Nil)), r) => {
+          let (ns, vs) = split!(r)
+          (Pair(n, ns), Pair(v, vs))
+        }
+        Nil => (Nil, Nil)
+        _ => raise FromSexpError(exp)
+      }
+    }
+
+    let (names, values) = split!(nvs)
+    let lam = Pair(Value::symbol("lambda"), Pair(names, body))
+    Pair(lam, values)
+  }
+
+  fn expand_cond(body) -> _!FromSexpError {
+    fn expand_clauses(r) -> Value!FromSexpError {
+      match r {
+        Pair(Pair(pred, Pair(texp, Nil)), r) => {
+          let e = if pred is Symbol(s) && s.to_string() == "else" {
+            guard let Nil = r else { _ => raise FromSexpError(exp) }
+            texp
+          } else {
+            Pair(
+              Value::symbol("if"),
+              Pair(pred, Pair(texp, expand_clauses!(r))),
+            )
+          }
+          Pair(e, Nil)
+        }
+        Nil => Nil
+        _ => raise FromSexpError(exp)
+      }
+    }
+
+    match expand_clauses!(body) {
+      Pair(e, Nil) => e
+      _ => raise FromSexpError(exp)
+    }
+  }
+
+  fn expand_and(body) -> _!FromSexpError {
+    match body {
+      Nil => True
+      Pair(l, Nil) => l
+      Pair(l, r) =>
+        Value::list([
+          Value::symbol("if"),
+          l,
+          Pair(Value::symbol("and"), r),
+          False,
+        ])
+      _ => raise FromSexpError(exp)
+    }
+  }
+
+  fn expand_or(body) -> _!FromSexpError {
+    match body {
+      Nil => False
+      Pair(l, Nil) => l
+      Pair(l, r) => {
+        let var_l = Symbol(Symbol::of("$GEN_SYM"))
+        Value::list([
+          Value::symbol("let"),
+          Value::list([Value::list([var_l, l])]),
+          Value::list([
+            Value::symbol("if"),
+            var_l,
+            var_l,
+            Pair(Value::symbol("or"), r),
+          ]),
+        ])
+      }
+      _ => raise FromSexpError(exp)
+    }
+  }
+
+  go!()
 }
