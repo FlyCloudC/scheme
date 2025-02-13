@@ -288,6 +288,10 @@ pub fn add_other_primitive(self : Environment) -> Unit {
       Symbol(_) => True
       _ => False
     },
+    "procedure?": fn {
+      Primitive(_) | Closure(_) | Continuation(_) => True
+      _ => False
+    },
   })
   self.add_primitive_2_from_map({ "eq?": fn { a, b => Value::bool(eq(a, b)) } })
 }
