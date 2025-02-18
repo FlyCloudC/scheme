@@ -1,5 +1,7 @@
 ///|
-impl Default for CoreForm with default() { SelfEval(Nil) }
+impl Default for CoreForm with default() {
+  SelfEval(Nil)
+}
 
 ///|
 pub impl ToSexp for CoreForm with to_sexp(self) {
@@ -22,7 +24,9 @@ pub impl ToSexp for CoreForm with to_sexp(self) {
 }
 
 ///|
-pub impl FromSexp for CoreForm with from_sexp(self) { to_core_form!(self) }
+pub impl FromSexp for CoreForm with from_sexp(self) {
+  to_core_form!(self)
+}
 
 ///|
 pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {

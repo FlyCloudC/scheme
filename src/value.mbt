@@ -28,7 +28,9 @@ pub impl Show for Closure with output(self, logger) {
 // |           Value           |
 // +---------------------------+
 ///|
-pub impl Default for Value with default() { Value::symbol("done") }
+pub impl Default for Value with default() {
+  Value::symbol("done")
+}
 
 ///|
 pub fn eq(self : Value, other : Value) -> Bool {

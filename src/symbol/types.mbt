@@ -26,7 +26,9 @@ pub fn Symbol::of(str : String) -> Symbol {
 }
 
 ///|
-pub impl Eq for Symbol with op_equal(a, b) { a._ == b._ }
+pub impl Eq for Symbol with op_equal(a, b) {
+  a._ == b._
+}
 
 ///|
 pub impl Show for Symbol with output(self, logger) {
@@ -34,13 +36,17 @@ pub impl Show for Symbol with output(self, logger) {
 }
 
 ///|
-pub impl Show for Symbol with to_string(self) { map_sym_id_to_str[self._] }
+pub impl Show for Symbol with to_string(self) {
+  map_sym_id_to_str[self._]
+}
 
 ///|
 let default_symbol : Symbol = Symbol::of("default-symbol")
 
 ///|
-pub impl Default for Symbol with default() { default_symbol }
+pub impl Default for Symbol with default() {
+  default_symbol
+}
 
 ///|
 test "symbol string" {

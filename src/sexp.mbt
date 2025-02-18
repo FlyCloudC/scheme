@@ -12,22 +12,34 @@ pub(open) trait FromSexp {
 }
 
 ///|
-pub impl ToSexp for Value with to_sexp(self) { self }
+pub impl ToSexp for Value with to_sexp(self) {
+  self
+}
 
 ///|
-pub impl ToSexp for Int with to_sexp(self) { Int(self) }
+pub impl ToSexp for Int with to_sexp(self) {
+  Int(self)
+}
 
 ///|
-pub impl ToSexp for Double with to_sexp(self) { Double(self) }
+pub impl ToSexp for Double with to_sexp(self) {
+  Double(self)
+}
 
 ///|
-pub impl ToSexp for Bool with to_sexp(self) { Value::bool(self) }
+pub impl ToSexp for Bool with to_sexp(self) {
+  Value::bool(self)
+}
 
 ///|
-pub impl ToSexp for Symbol with to_sexp(self) { Symbol(self) }
+pub impl ToSexp for Symbol with to_sexp(self) {
+  Symbol(self)
+}
 
 ///|
-pub impl ToSexp for String with to_sexp(self) { String(self) }
+pub impl ToSexp for String with to_sexp(self) {
+  String(self)
+}
 
 ///|
 pub impl[A : ToSexp] ToSexp for Array[A] with to_sexp(self) {
@@ -58,11 +70,11 @@ pub impl ToSexp for Json with to_sexp(self) {
     Number(x) => Int(x.to_int())
     String(x) => Value::symbol(x)
     Array(xs) => xs.to_sexp()
-    Object({ "type": "inproper list", "ls": Array(xs), "r": r }) =>
+    Object({ "type": "inproper list", "ls": Array(xs), "r": r, .. }) =>
       xs.rev_fold(init=r.to_sexp(), fn { acc, x => Pair(x.to_sexp(), acc) })
-    Object({ "type": "string", "value": String(s) }) => String(s)
-    Object({ "type": "double", "value": Number(d) }) => Double(d)
-    Object({ "type": "vector", "value": Array(arr) }) =>
+    Object({ "type": "string", "value": String(s), .. }) => String(s)
+    Object({ "type": "double", "value": Number(d), .. }) => Double(d)
+    Object({ "type": "vector", "value": Array(arr), .. }) =>
       FixedArray::makei(arr.length(), fn(i) { arr[i].to_sexp() }) |> Vector
     Object(m) => Pair(Value::symbol("object"), Pair(m.iter2().to_sexp(), Nil))
   }
