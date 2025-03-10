@@ -13,37 +13,59 @@ pub fn VM::new(
 }
 
 ///|
+fn Frame::save(vm : VM, ret : Inst) -> Frame {
+  { ret, env: vm.env, rib: vm.rib, stack: vm.stack }
+}
+
+///|
+fn load_frame(self : VM, frame : Frame) -> Unit {
+  self.next = frame.ret
+  self.env = frame.env
+  self.rib = frame.rib
+  self.stack = frame.stack
+}
+
+///|
 pub fn run_one_step(self : VM) -> Unit!SchemeException {
   match self.next {
+    // Const
     Const(v, next) => {
       self.acc = v
       self.next = next
     }
+    // Env
     Refer(name, next) => {
       self.acc = self.env.lookup!(name)
       self.next = next
     }
-    Return =>
-      match self.stack {
-        None => () // Halt
-        Some(saved_frame) => {
-          self.next = saved_frame.ret
-          self.env = saved_frame.env
-          self.rib = saved_frame.rib
-          self.stack = saved_frame.stack
-        }
-      }
-    Close(parm_names, body, name, next) => {
-      self.acc = Closure({ env: self.env, parm_names, body, name })
+    Set(name, next) => {
+      self.env.set_var!(name, self.acc)
+      self.acc = Value::default()
       self.next = next
     }
+    Define(name, next) => {
+      self.env.define_var(name, self.acc)
+      self.acc = Value::default()
+      self.next = next
+    }
+    // Control
     Branch(nt, nf) =>
       self.next = match self.acc {
         False => nf
         _ => nt
       }
+    Return =>
+      match self.stack {
+        None => () // Halt
+        Some(saved_frame) => self.load_frame(saved_frame)
+      }
+    Close(parm_names, body, name, next) => {
+      self.acc = Closure({ env: self.env, parm_names, body, name })
+      self.next = next
+    }
+    // Apply
     Save(next, ret) => {
-      self.stack = Some({ ret, env: self.env, rib: self.rib, stack: self.stack })
+      self.stack = Some(Frame::save(self, ret))
       self.next = next
     }
     Args(args_length, next) => {
@@ -55,16 +77,6 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
       self.next = next
     }
     Apply => self.apply!()
-    Set(name, next) => {
-      self.env.set_var!(name, self.acc)
-      self.acc = Value::default()
-      self.next = next
-    }
-    Define(name, next) => {
-      self.env.define_var(name, self.acc)
-      self.acc = Value::default()
-      self.next = next
-    }
   }
 }
 
@@ -85,15 +97,15 @@ fn apply(self : VM) -> Unit!SchemeException {
           self.next = Return
         }
         CallCC => {
-          guard let [f] = self.rib else { _ => raise ArgumentCount }
+          guard self.rib is [f] else { raise ArgumentCount }
           self.acc = f
           self.rib[0] = Continuation(self.stack)
           self.apply!()
         }
         Apply => {
-          guard let [f, v] = self.rib else { _ => raise ArgumentCount }
-          guard let (Nil, length) = list_tail_and_length(v) else {
-            _ => raise TypeError(1)
+          guard self.rib is [f, v] else { raise ArgumentCount }
+          guard list_tail_and_length(v) is (Nil, length) else {
+            raise TypeError(1)
           }
           self.acc = f
           self.rib = v.unsafe_to_fixedarray(length)
@@ -101,7 +113,7 @@ fn apply(self : VM) -> Unit!SchemeException {
         }
       }
     Continuation(stack) => {
-      guard let [v] = self.rib else { _ => raise ArgumentCount }
+      guard self.rib is [v] else { raise ArgumentCount }
       self.acc = v
       self.stack = stack
       self.next = Return

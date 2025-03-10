@@ -216,7 +216,7 @@ pub fn add_string_primitive(self : Environment) -> Unit {
       args => {
         let b = StringBuilder::new()
         for i, v in args {
-          guard let String(str) = v else { _ => raise TypeError(i) }
+          guard v is String(str) else { raise TypeError(i) }
           b.write_string(str)
         }
         String(b.to_string())
@@ -231,7 +231,7 @@ pub fn add_string_primitive(self : Environment) -> Unit {
 /// `vector-ref`, `vector-set!`
 pub fn add_vector_primitive(self : Environment) -> Unit {
   fn make_vector(n, init) -> _!SchemeException {
-    guard let Int(n) = n else { _ => raise TypeError(0) }
+    guard n is Int(n) else { raise TypeError(0) }
     guard n >= 0 else { raise InvalidArgument(0) }
     Vector(FixedArray::make(n, init))
   }

@@ -61,7 +61,7 @@ pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
   }
 
   fn to_lambda(r) -> _!FromSexpError {
-    guard let Pair(parms, bodys) = r else { _ => raise FromSexpError(exp) }
+    guard r is Pair(parms, bodys) else { raise FromSexpError(exp) }
     let parms = valid_parms!(parms)
     Lambda(parms, to_seq!(bodys), name=None)
   }
@@ -90,7 +90,7 @@ pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
     if length == 0 {
       raise FromSexpError(exp)
     }
-    guard let (bodys, Pair(bodye, _)) = to_core_from_list!(r, length - 1)
+    guard to_core_from_list!(r, length - 1) is (bodys, Pair(bodye, _))
     Begin(bodys, to_core_form!(bodye))
   }
 
@@ -130,8 +130,8 @@ pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
   }
 
   fn proper_list_length(ls) -> _!FromSexpError {
-    guard let (Nil, length) = list_tail_and_length(ls) else {
-      _ => raise FromSexpError(exp)
+    guard list_tail_and_length(ls) is (Nil, length) else {
+      raise FromSexpError(exp)
     }
     length
   }
@@ -146,7 +146,7 @@ fn to_core_from_list(
 ) -> (FixedArray[CoreForm], Value)!FromSexpError {
   let dist = FixedArray::make(length, CoreForm::default())
   for i = 0, r = ls; i < length; {
-    guard let Pair(l, r) = r
+    guard r is Pair(l, r)
     dist[i] = to_core_form!(l)
     continue i + 1, r
   } else {
@@ -172,7 +172,7 @@ fn expand(self : Value) -> Value!FromSexpError {
   }
 
   fn expand_let(body) -> _!FromSexpError {
-    guard let Pair(nvs, body) = body else { _ => raise FromSexpError(exp) }
+    guard body is Pair(nvs, body) else { raise FromSexpError(exp) }
     fn split(nvs) -> (Value, Value)!FromSexpError {
       match nvs {
         Pair(Pair(n, Pair(v, Nil)), r) => {
@@ -194,7 +194,7 @@ fn expand(self : Value) -> Value!FromSexpError {
       match r {
         Pair(Pair(pred, Pair(texp, Nil)), r) => {
           let e = if pred is Symbol(s) && s.to_string() == "else" {
-            guard let Nil = r else { _ => raise FromSexpError(exp) }
+            guard r is Nil else { raise FromSexpError(exp) }
             texp
           } else {
             Pair(
