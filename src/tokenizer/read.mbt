@@ -1,27 +1,11 @@
 ///|
 fn is_space(c : Char) -> Bool {
-  match c {
-    ' ' | '\n' | '\r' | '\t' => true
-    _ => false
-  }
+  c is (' ' | '\n' | '\r' | '\t')
 }
 
 ///|
 fn is_symbol_end(c : Char) -> Bool {
-  match c {
-    '(' | ')' | '#' | '\'' => true
-    _ => is_space(c)
-  }
-}
-
-///|
-fn length(self : Tokenizer) -> Int {
-  self.code.codepoint_length()
-}
-
-///|
-fn op_get(self : Tokenizer, idx : Int) -> Char {
-  self.code.codepoint_at(idx)
+  is_space(c) || c is ('(' | ')' | '#' | '\'')
 }
 
 ///|
@@ -31,43 +15,25 @@ fn next(self : Tokenizer) -> Unit {
 
 ///|
 fn peek(self : Tokenizer) -> Char? {
-  if self.i < self.length() {
-    Some(self[self.i])
-  } else {
-    None
-  }
-}
-
-///|
-fn peek_next(self : Tokenizer) -> Char? {
-  if self.i + 1 < self.length() {
-    Some(self[self.i + 1])
-  } else {
-    None
-  }
+  guard self.i < self.code.length() else { None }
+  Some(self.code[self.i])
 }
 
 ///|
 pub fn read(code : String) -> Array[(Token, Int, Int)]!ReadException {
-  let self : Tokenizer = { i: 0, code, res: Array::new() }
-  loop self.peek() {
-    None => {
-      guard self.i >= self.length()
-      self.res
-    }
-    Some(c) => {
-      self.next()
-      if c == ';' {
-        self.read_comment()
-      } else if not(is_space(c)) {
-        let begin = self.i - 1
-        let next_token = self.read_next_token!(c)
-        let end = self.i
-        self.res.push((next_token, begin, end))
-      }
-      continue self.peek()
+  let self : Tokenizer = { code: code.to_array(), res: Array::new(), i: 0 }
+  while self.peek() is Some(c) {
+    self.next()
+    if c == ';' {
+      self.read_comment()
+    } else if not(is_space(c)) {
+      let begin = self.i - 1
+      let next_token = self.read_next_token!(c)
+      let end = self.i
+      self.res.push((next_token, begin, end))
     }
   }
+  self.res
 }
 
 ///|
@@ -152,13 +118,9 @@ fn read_string(self : Tokenizer) -> Token!ReadException {
 ///|
 fn read_symbol(self : Tokenizer, c : Char) -> Token {
   let b = StringBuilder::new()..write_char(c)
-  loop self.peek() {
-    Some(c) =>
-      if not(is_symbol_end(c)) {
-        b.write_char(c)
-        continue self..next().peek()
-      }
-    None => ()
+  while self.peek() is Some(c) && not(is_symbol_end(c)) {
+    b.write_char(c)
+    self.next()
   }
   Symbol(b.to_string())
 }

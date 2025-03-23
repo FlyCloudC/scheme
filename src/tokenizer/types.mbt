@@ -22,7 +22,7 @@ pub(all) enum Token {
 
 ///|
 priv struct Tokenizer {
-  code : String
+  code : Array[Char]
   res : Array[(Token, Int, Int)]
   mut i : Int
 } derive(Show)
