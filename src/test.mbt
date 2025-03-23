@@ -245,3 +245,35 @@ test "apply" {
     ,
   )
 }
+
+///|
+test "expand" {
+  let env = Environment::base()..add_number_primitive()
+  let code =
+    #|(let ((x 1)
+    #|      (y 2))
+    #|  (+ x y))
+    #|
+    #|(and)
+    #|(and #f)
+    #|(and (> 1 0) (> 2 0))
+    #|
+    #|(define (fact x)
+    #|   (cond 
+    #|     ((= x 0) 1)
+    #|     (else (* x (fact (- x 1))))))
+    #|(fact 2)
+  code
+  |> run_and_to_string!(env)
+  |> inspect!(
+    content=
+      #|3
+      #|#t
+      #|#f
+      #|#t
+      #|2
+      #|
+
+    ,
+  )
+}
