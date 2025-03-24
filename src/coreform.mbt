@@ -87,9 +87,7 @@ pub fn to_core_form(self : Value) -> CoreForm!FromSexpError {
 
   fn to_seq(r) -> _!FromSexpError {
     let length = proper_list_length!(r)
-    if length == 0 {
-      raise FromSexpError(exp)
-    }
+    guard length > 0 else { raise FromSexpError(exp) }
     guard to_core_from_list!(r, length - 1) is (bodys, Pair(bodye, _))
     Begin(bodys, to_core_form!(bodye))
   }

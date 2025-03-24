@@ -63,9 +63,9 @@ fn read_next_token(self : Tokenizer, c : Char) -> Token!ReadException {
 ///|
 fn read_number(self : Tokenizer, c : Char) -> Token {
   // Todo: Int out of range
-  loop self.peek(), c - '0' {
+  loop self.peek(), c.to_int() - '0' {
     Some('0'..='9' as c), acc =>
-      continue self..next().peek(), acc * 10 + (c - '0')
+      continue self..next().peek(), acc * 10 + (c.to_int() - '0')
     Some('.'), acc => self..next().read_double(acc)
     _, acc => Int(acc)
   }
@@ -75,7 +75,9 @@ fn read_number(self : Tokenizer, c : Char) -> Token {
 fn read_double(self : Tokenizer, z : Int) -> Token {
   loop self.peek(), z.to_double(), 0.1 {
     Some('0'..='9' as c), acc, i =>
-      continue self..next().peek(), acc + i * (c - '0').to_double(), i / 10
+      continue self..next().peek(),
+        acc + i * (c.to_int() - '0').to_double(),
+        i / 10
     _, acc, _ => Double(acc)
   }
 }
