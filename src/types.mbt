@@ -1,5 +1,5 @@
 ///|
-typealias Symbol = @symbol.Symbol
+typealias @symbol.Symbol
 
 ///|
 pub(all) type! SchemeException {
@@ -103,7 +103,7 @@ pub struct Frame {
 // -----------------------------
 
 ///|
-typealias Token = @tokenizer.Token
+typealias @tokenizer.Token
 
 ///|
 pub type! ParseException {
