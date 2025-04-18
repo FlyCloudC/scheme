@@ -75,7 +75,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Int(a), Int(b) => Value::bool(a == b)
       Double(a), Double(b) => Value::bool(a == b)
       Double(a), Int(b) => Value::bool(a == b.to_double())
-      Int(b), Double(a) => Value::bool(a == b.to_double())
+      Int(a), Double(b) => Value::bool(a.to_double() == b)
       Int(_) | Double(_), _ => raise TypeError(1)
       _, _ => raise TypeError(0)
     },
@@ -83,7 +83,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Int(a), Int(b) => Value::bool(a > b)
       Double(a), Double(b) => Value::bool(a > b)
       Double(a), Int(b) => Value::bool(a > b.to_double())
-      Int(b), Double(a) => Value::bool(a > b.to_double())
+      Int(a), Double(b) => Value::bool(a.to_double() > b)
       Int(_) | Double(_), _ => raise TypeError(1)
       _, _ => raise TypeError(0)
     },
@@ -91,7 +91,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
       Int(a), Int(b) => Value::bool(a < b)
       Double(a), Double(b) => Value::bool(a < b)
       Double(a), Int(b) => Value::bool(a < b.to_double())
-      Int(b), Double(a) => Value::bool(a < b.to_double())
+      Int(a), Double(b) => Value::bool(a.to_double() < b)
       Int(_) | Double(_), _ => raise TypeError(1)
       _, _ => raise TypeError(0)
     },
@@ -103,7 +103,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     fdd : (Double, Double) -> Double
   ) -> _!SchemeException {
     let mut accd = init
-    for i = i; i < args.length(); i = i + 1 {
+    for i in i..<args.length() {
       accd = fdd(
         accd,
         match args[i] {
@@ -124,7 +124,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     fdd : (Double, Double) -> Double
   ) -> _!SchemeException {
     let mut acci = init
-    for i = i; i < args.length(); i = i + 1 {
+    for i in i..<args.length() {
       match args[i] {
         Int(x) => acci = fii(acci, x)
         Double(x) =>
