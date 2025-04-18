@@ -1,0 +1,18 @@
+package "FlyCloudC/scheme/symbol"
+
+// Values
+
+// Types and methods
+type Symbol
+impl Symbol {
+  of(String) -> Self
+}
+impl Default for Symbol
+impl Eq for Symbol
+impl Hash for Symbol
+impl Show for Symbol
+
+// Type aliases
+
+// Traits
+

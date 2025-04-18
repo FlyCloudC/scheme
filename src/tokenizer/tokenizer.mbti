@@ -1,0 +1,33 @@
+package "FlyCloudC/scheme/tokenizer"
+
+// Values
+fn read(String) -> Array[(Token, Int, Int)]!ReadException
+
+// Types and methods
+pub type! ReadException {
+  UnterminatedString(String, Int)
+  InvalidStringEscaping(String, Char, Int)
+  InvalidAfterSharp(Char?, Int)
+}
+impl Show for ReadException
+
+pub(all) enum Token {
+  Lp
+  Rp
+  SLp
+  Quote
+  Dot
+  ST
+  SF
+  Int(Int)
+  Double(Double)
+  Symbol(String)
+  String(String)
+}
+impl Eq for Token
+impl Show for Token
+
+// Type aliases
+
+// Traits
+

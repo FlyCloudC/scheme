@@ -1,0 +1,219 @@
+package "FlyCloudC/scheme"
+
+import(
+  "FlyCloudC/scheme/symbol"
+  "FlyCloudC/scheme/tokenizer"
+  "moonbitlang/core/hashmap"
+)
+
+// Values
+fn add_all_base_primitive(Environment) -> Unit
+
+fn add_number_primitive(Environment) -> Unit
+
+fn add_other_primitive(Environment) -> Unit
+
+fn add_pair_primitive(Environment) -> Unit
+
+fn add_primitive_1_from_map(Environment, Map[String, (Value) -> Value!SchemeException]) -> Unit
+
+fn add_primitive_2_from_map(Environment, Map[String, (Value, Value) -> Value!SchemeException]) -> Unit
+
+fn add_primitive_3_from_map(Environment, Map[String, (Value, Value, Value) -> Value!SchemeException]) -> Unit
+
+fn add_primitive_n_from_map(Environment, Map[String, (FixedArray[Value]) -> Value!SchemeException]) -> Unit
+
+fn add_string_primitive(Environment) -> Unit
+
+fn add_vector_primitive(Environment) -> Unit
+
+fn compile(CoreForm) -> Inst
+
+fn define_var(Environment, @symbol.Symbol, Value) -> Unit
+
+fn eq(Value, Value) -> Bool
+
+fn extend(Environment, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Environment
+
+fn list_tail_and_length(Value) -> (Value, Int)
+
+fn lookup(Environment, @symbol.Symbol) -> Value!SchemeException
+
+fn parse(String) -> Array[Value]!ParseException
+
+fn run_one_step(VM) -> Unit!SchemeException
+
+fn run_to_halt(VM) -> Unit!SchemeException
+
+fn set_var(Environment, @symbol.Symbol, Value) -> Unit!SchemeException
+
+fn to_core_form(Value) -> CoreForm!FromSexpError
+
+fn unsafe_to_fixedarray(Value, Int) -> FixedArray[Value]
+
+// Types and methods
+pub struct Closure {
+  env : Environment
+  parm_names : FixedArray[@symbol.Symbol]
+  body : Inst
+  name : @symbol.Symbol?
+}
+impl Show for Closure
+
+pub enum CoreForm {
+  SelfEval(Value)
+  Var(@symbol.Symbol)
+  Quote(Value)
+  Lambda(FixedArray[@symbol.Symbol], CoreForm, name~ : @symbol.Symbol?)
+  Begin(FixedArray[CoreForm], CoreForm)
+  If(CoreForm, CoreForm, CoreForm?)
+  Apply(CoreForm, FixedArray[CoreForm])
+  Set(@symbol.Symbol, CoreForm)
+  Define(@symbol.Symbol, CoreForm)
+}
+impl CoreForm {
+  compile(Self) -> Inst
+}
+impl FromSexp for CoreForm
+impl ToSexp for CoreForm
+impl Show for CoreForm
+
+pub(all) struct Environment {
+  binds : @hashmap.T[@symbol.Symbol, Value]
+  next : Environment?
+  closure : Closure?
+}
+impl Environment {
+  add_all_base_primitive(Self) -> Unit
+  add_number_primitive(Self) -> Unit
+  add_other_primitive(Self) -> Unit
+  add_pair_primitive(Self) -> Unit
+  add_primitive_1_from_map(Self, Map[String, (Value) -> Value!SchemeException]) -> Unit
+  add_primitive_2_from_map(Self, Map[String, (Value, Value) -> Value!SchemeException]) -> Unit
+  add_primitive_3_from_map(Self, Map[String, (Value, Value, Value) -> Value!SchemeException]) -> Unit
+  add_primitive_n_from_map(Self, Map[String, (FixedArray[Value]) -> Value!SchemeException]) -> Unit
+  add_string_primitive(Self) -> Unit
+  add_vector_primitive(Self) -> Unit
+  base() -> Self
+  define_var(Self, @symbol.Symbol, Value) -> Unit
+  extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
+  lookup(Self, @symbol.Symbol) -> Value!SchemeException
+  set_var(Self, @symbol.Symbol, Value) -> Unit!SchemeException
+}
+impl Show for Environment
+
+pub struct Frame {
+  ret : Inst
+  env : Environment
+  rib : FixedArray[Value]
+  stack : Frame?
+}
+
+pub(all) type! FromSexpError Value
+impl Show for FromSexpError
+
+pub enum Inst {
+  Const(Value, Inst)
+  Refer(@symbol.Symbol, Inst)
+  Return
+  Close(FixedArray[@symbol.Symbol], Inst, @symbol.Symbol?, Inst)
+  Branch(Inst, Inst)
+  Save(Inst, Inst)
+  Args(Int, Inst)
+  Push(Int, Inst)
+  Apply
+  Set(@symbol.Symbol, Inst)
+  Define(@symbol.Symbol, Inst)
+}
+
+pub type! ParseException {
+  UnexpectedToken(@tokenizer.Token)
+  MoreThanOneAfterDot(@tokenizer.Token)
+  MisTokenAfterDot
+  UnexpectedEndOfInput
+  ReadException(@tokenizer.ReadException)
+}
+impl Show for ParseException
+
+pub(all) enum Primitive {
+  Normal(name~ : @symbol.Symbol, (FixedArray[Value]) -> Value!SchemeException)
+  CallCC
+  Apply
+}
+impl Primitive {
+  name(Self) -> @symbol.Symbol
+}
+impl Show for Primitive
+
+pub(all) type! SchemeException {
+  UndefineVar
+  CallNonProcedure
+  ArgumentCount
+  TypeError(Int)
+  InvalidArgument(Int)
+  DevideZero
+}
+impl Show for SchemeException
+
+pub(all) struct VM {
+  mut acc : Value
+  mut next : Inst
+  mut env : Environment
+  mut rib : FixedArray[Value]
+  mut stack : Frame?
+}
+impl VM {
+  new(inst~ : Inst = .., env~ : Environment = ..) -> Self
+  run_one_step(Self) -> Unit!SchemeException
+  run_to_halt(Self) -> Unit!SchemeException
+}
+
+pub(all) enum Value {
+  Nil
+  True
+  False
+  Pair(Value, Value)
+  Int(Int)
+  Double(Double)
+  Symbol(@symbol.Symbol)
+  String(String)
+  Vector(FixedArray[Value])
+  Primitive(Primitive)
+  Closure(Closure)
+  Continuation(Frame?)
+}
+impl Value {
+  bool(Bool) -> Self
+  eq(Self, Self) -> Bool
+  list(FixedArray[Self]) -> Self
+  list_tail_and_length(Self) -> (Self, Int)
+  symbol(String) -> Self
+  to_core_form(Self) -> CoreForm!FromSexpError
+  unsafe_to_fixedarray(Self, Int) -> FixedArray[Self]
+}
+impl ToSexp for Value
+impl Default for Value
+impl Show for Value
+
+// Type aliases
+
+// Traits
+pub(open) trait FromSexp {
+  from_sexp(Value) -> Self!FromSexpError
+}
+impl FromSexp for Json
+
+pub(open) trait ToSexp {
+  to_sexp(Self) -> Value
+}
+impl ToSexp for Bool
+impl ToSexp for Int
+impl ToSexp for Double
+impl ToSexp for String
+impl[A : ToSexp] ToSexp for FixedArray[A]
+impl ToSexp for @symbol.Symbol
+impl[A : ToSexp] ToSexp for Array[A]
+impl[A : ToSexp, B : ToSexp] ToSexp for Iter2[A, B]
+impl ToSexp for Json
+impl[A : ToSexp, B : ToSexp] ToSexp for (A, B)
+
