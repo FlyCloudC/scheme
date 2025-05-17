@@ -84,14 +84,14 @@ pub impl ToSexp for Json with to_sexp(self) {
 pub impl FromSexp for Json with from_sexp(self) {
   match self {
     Nil => []
-    True => True
-    False => False
-    Int(x) => Number(x.to_double())
-    Symbol(s) => String(s.to_string())
+    True => true
+    False => false
+    Int(x) => Json::number(x.to_double())
+    Symbol(s) => Json::string(s.to_string())
     Pair(l, r) => {
       let res = [Json::from_sexp!(l)]
       loop r {
-        Nil => Array(res)
+        Nil => Json::array(res)
         Pair(l, r) => {
           res.push(Json::from_sexp!(l))
           continue r
@@ -99,19 +99,19 @@ pub impl FromSexp for Json with from_sexp(self) {
         r =>
           {
             "type": "inproper list",
-            "ls": Array(res),
+            "ls": Json::array(res),
             "r": Json::from_sexp!(r),
           }
       }
     }
-    Double(d) => { "type": "double", "value": Number(d) }
-    String(s) => { "type": "string", "value": String(s) }
+    Double(d) => { "type": "double", "value": Json::number(d) }
+    String(s) => { "type": "string", "value": Json::string(s) }
     Vector(arr) => {
       let res = []
       for v in arr {
         res.push(Json::from_sexp!(v))
       }
-      { "type": "vector", "value": Array(res) }
+      { "type": "vector", "value": Json::array(res) }
     }
     Closure(_) | Primitive(_) | Continuation(_) => raise FromSexpError(self)
   }
