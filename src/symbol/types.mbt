@@ -10,7 +10,7 @@ let map_sym_id_to_str : Array[String] = []
 ///|
 let get_next_id : () -> Int = {
   let mut i = -1
-  fn() {
+  () => {
     i += 1
     i
   }
@@ -18,7 +18,7 @@ let get_next_id : () -> Int = {
 
 ///|
 pub fn Symbol::of(str : String) -> Symbol {
-  map_str_to_sym.get_or_init(str, fn() {
+  map_str_to_sym.get_or_init(str, () => {
     let res = Symbol(get_next_id())
     map_sym_id_to_str.push(str)
     res
@@ -27,17 +27,17 @@ pub fn Symbol::of(str : String) -> Symbol {
 
 ///|
 pub impl Eq for Symbol with op_equal(a, b) {
-  a._ == b._
+  a.inner() == b.inner()
 }
 
 ///|
 pub impl Show for Symbol with output(self, logger) {
-  logger.write_string(map_sym_id_to_str[self._])
+  logger.write_string(map_sym_id_to_str[self.inner()])
 }
 
 ///|
 pub impl Show for Symbol with to_string(self) {
-  map_sym_id_to_str[self._]
+  map_sym_id_to_str[self.inner()]
 }
 
 ///|
@@ -51,7 +51,7 @@ pub impl Default for Symbol with default() {
 ///|
 test "symbol string" {
   let s = "a中a🐇a"
-  assert_eq!(Symbol::of(s).to_string(), s)
+  assert_eq(Symbol::of(s).to_string(), s)
 }
 
 ///|
@@ -61,11 +61,11 @@ test "symbol eq" {
   let a2 = Symbol::of("a")
   let bbbbb2 = Symbol::of("bbbbb")
   // eq
-  assert_true!(a1 == a2)
-  assert_true!(bbbbb1 == bbbbb2)
+  assert_true(a1 == a2)
+  assert_true(bbbbb1 == bbbbb2)
   // // not eq
-  assert_true!(a1 != bbbbb1)
-  assert_true!(a1 != bbbbb2)
-  assert_true!(a2 != bbbbb1)
-  assert_true!(a2 != bbbbb2)
+  assert_true(a1 != bbbbb1)
+  assert_true(a1 != bbbbb2)
+  assert_true(a2 != bbbbb1)
+  assert_true(a2 != bbbbb2)
 }

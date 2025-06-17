@@ -1,5 +1,5 @@
 ///|
-pub fn compile(self : CoreForm) -> Inst {
+pub fn CoreForm::compile(self : CoreForm) -> Inst {
   fn then(exp, next) {
     match exp {
       SelfEval(v) | Quote(v) => Const(v, next)
@@ -14,7 +14,7 @@ pub fn compile(self : CoreForm) -> Inst {
       }
       Begin(bodys, bodye) => {
         let bodyei = then(bodye, next)
-        bodys.rev_fold(init=bodyei, fn { acc, x => then(x, acc) })
+        bodys.rev_fold(init=bodyei, (acc, x) => then(x, acc))
       }
       If(ep, et, ef) => {
         let eti = then(et, next)
@@ -29,9 +29,10 @@ pub fn compile(self : CoreForm) -> Inst {
         let fi = then(f, Apply)
         let argsi = Args(
           length,
-          args.rev_foldi(init=fi, fn {
-            i, acc, x => then(x, Push(length - 1 - i, acc))
-          }),
+          args.rev_foldi(init=fi, (i, acc, x) => then(
+            x,
+            Push(length - 1 - i, acc),
+          )),
         )
         match next {
           Return => argsi
@@ -45,3 +46,6 @@ pub fn compile(self : CoreForm) -> Inst {
 
   then(self, Return)
 }
+
+///|
+pub fnalias CoreForm::compile

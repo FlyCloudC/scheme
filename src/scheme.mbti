@@ -7,49 +7,11 @@ import(
 )
 
 // Values
-fn add_all_base_primitive(Environment) -> Unit
-
-fn add_number_primitive(Environment) -> Unit
-
-fn add_other_primitive(Environment) -> Unit
-
-fn add_pair_primitive(Environment) -> Unit
-
-fn add_primitive_1_from_map(Environment, Map[String, (Value) -> Value!SchemeException]) -> Unit
-
-fn add_primitive_2_from_map(Environment, Map[String, (Value, Value) -> Value!SchemeException]) -> Unit
-
-fn add_primitive_3_from_map(Environment, Map[String, (Value, Value, Value) -> Value!SchemeException]) -> Unit
-
-fn add_primitive_n_from_map(Environment, Map[String, (FixedArray[Value]) -> Value!SchemeException]) -> Unit
-
-fn add_string_primitive(Environment) -> Unit
-
-fn add_vector_primitive(Environment) -> Unit
-
 fn compile(CoreForm) -> Inst
 
-fn define_var(Environment, @symbol.Symbol, Value) -> Unit
+fn parse(String) -> Array[Value] raise ParseException
 
-fn eq(Value, Value) -> Bool
-
-fn extend(Environment, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Environment
-
-fn list_tail_and_length(Value) -> (Value, Int)
-
-fn lookup(Environment, @symbol.Symbol) -> Value!SchemeException
-
-fn parse(String) -> Array[Value]!ParseException
-
-fn run_one_step(VM) -> Unit!SchemeException
-
-fn run_to_halt(VM) -> Unit!SchemeException
-
-fn set_var(Environment, @symbol.Symbol, Value) -> Unit!SchemeException
-
-fn to_core_form(Value) -> CoreForm!FromSexpError
-
-fn unsafe_to_fixedarray(Value, Int) -> FixedArray[Value]
+fn[Self : ToSexp] to_sexp(Self) -> Value
 
 // Types and methods
 pub struct Closure {
@@ -71,9 +33,7 @@ pub enum CoreForm {
   Set(@symbol.Symbol, CoreForm)
   Define(@symbol.Symbol, CoreForm)
 }
-impl CoreForm {
-  compile(Self) -> Inst
-}
+fn CoreForm::compile(Self) -> Inst
 impl FromSexp for CoreForm
 impl ToSexp for CoreForm
 impl Show for CoreForm
@@ -83,23 +43,17 @@ pub(all) struct Environment {
   next : Environment?
   closure : Closure?
 }
-impl Environment {
-  add_all_base_primitive(Self) -> Unit
-  add_number_primitive(Self) -> Unit
-  add_other_primitive(Self) -> Unit
-  add_pair_primitive(Self) -> Unit
-  add_primitive_1_from_map(Self, Map[String, (Value) -> Value!SchemeException]) -> Unit
-  add_primitive_2_from_map(Self, Map[String, (Value, Value) -> Value!SchemeException]) -> Unit
-  add_primitive_3_from_map(Self, Map[String, (Value, Value, Value) -> Value!SchemeException]) -> Unit
-  add_primitive_n_from_map(Self, Map[String, (FixedArray[Value]) -> Value!SchemeException]) -> Unit
-  add_string_primitive(Self) -> Unit
-  add_vector_primitive(Self) -> Unit
-  base() -> Self
-  define_var(Self, @symbol.Symbol, Value) -> Unit
-  extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
-  lookup(Self, @symbol.Symbol) -> Value!SchemeException
-  set_var(Self, @symbol.Symbol, Value) -> Unit!SchemeException
-}
+fn Environment::add_all_base_primitive(Self) -> Unit
+fn Environment::add_number_primitive(Self) -> Unit
+fn Environment::add_other_primitive(Self) -> Unit
+fn Environment::add_pair_primitive(Self) -> Unit
+fn Environment::add_string_primitive(Self) -> Unit
+fn Environment::add_vector_primitive(Self) -> Unit
+fn Environment::base() -> Self
+fn Environment::define_var(Self, @symbol.Symbol, Value) -> Unit
+fn Environment::extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
+fn Environment::lookup(Self, @symbol.Symbol) -> Value raise SchemeException
+fn Environment::set_var(Self, @symbol.Symbol, Value) -> Unit raise SchemeException
 impl Show for Environment
 
 pub struct Frame {
@@ -109,7 +63,7 @@ pub struct Frame {
   stack : Frame?
 }
 
-pub(all) type! FromSexpError Value
+pub(all) suberror FromSexpError Value
 impl Show for FromSexpError
 
 pub enum Inst {
@@ -126,7 +80,7 @@ pub enum Inst {
   Define(@symbol.Symbol, Inst)
 }
 
-pub type! ParseException {
+pub suberror ParseException {
   UnexpectedToken(@tokenizer.Token)
   MoreThanOneAfterDot(@tokenizer.Token)
   MisTokenAfterDot
@@ -136,16 +90,14 @@ pub type! ParseException {
 impl Show for ParseException
 
 pub(all) enum Primitive {
-  Normal(name~ : @symbol.Symbol, (FixedArray[Value]) -> Value!SchemeException)
+  Normal(name~ : @symbol.Symbol, (FixedArray[Value]) -> Value raise SchemeException)
   CallCC
   Apply
 }
-impl Primitive {
-  name(Self) -> @symbol.Symbol
-}
+fn Primitive::name(Self) -> @symbol.Symbol
 impl Show for Primitive
 
-pub(all) type! SchemeException {
+pub(all) suberror SchemeException {
   UndefineVar
   CallNonProcedure
   ArgumentCount
@@ -162,11 +114,9 @@ pub(all) struct VM {
   mut rib : FixedArray[Value]
   mut stack : Frame?
 }
-impl VM {
-  new(inst~ : Inst = .., env~ : Environment = ..) -> Self
-  run_one_step(Self) -> Unit!SchemeException
-  run_to_halt(Self) -> Unit!SchemeException
-}
+fn VM::new(inst~ : Inst = .., env~ : Environment = ..) -> Self
+fn VM::run_one_step(Self) -> Unit raise SchemeException
+fn VM::run_to_halt(Self) -> Unit raise SchemeException
 
 pub(all) enum Value {
   Nil
@@ -182,15 +132,13 @@ pub(all) enum Value {
   Closure(Closure)
   Continuation(Frame?)
 }
-impl Value {
-  bool(Bool) -> Self
-  eq(Self, Self) -> Bool
-  list(FixedArray[Self]) -> Self
-  list_tail_and_length(Self) -> (Self, Int)
-  symbol(String) -> Self
-  to_core_form(Self) -> CoreForm!FromSexpError
-  unsafe_to_fixedarray(Self, Int) -> FixedArray[Self]
-}
+fn Value::bool(Bool) -> Self
+fn Value::eq(Self, Self) -> Bool
+fn Value::list(FixedArray[Self]) -> Self
+fn Value::list_tail_and_length(Self) -> (Self, Int)
+fn Value::symbol(String) -> Self
+fn Value::to_core_form(Self) -> CoreForm raise FromSexpError
+fn Value::unsafe_to_fixedarray(Self, Int) -> FixedArray[Self]
 impl ToSexp for Value
 impl Default for Value
 impl Show for Value
@@ -199,7 +147,7 @@ impl Show for Value
 
 // Traits
 pub(open) trait FromSexp {
-  from_sexp(Value) -> Self!FromSexpError
+  from_sexp(Value) -> Self raise FromSexpError
 }
 impl FromSexp for Json
 

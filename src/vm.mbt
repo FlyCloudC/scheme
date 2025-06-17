@@ -26,7 +26,7 @@ fn load_frame(self : VM, frame : Frame) -> Unit {
 }
 
 ///|
-pub fn run_one_step(self : VM) -> Unit!SchemeException {
+pub fn run_one_step(self : VM) -> Unit raise SchemeException {
   match self.next {
     // Const
     Const(v, next) => {
@@ -35,11 +35,11 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
     }
     // Env
     Refer(name, next) => {
-      self.acc = self.env.lookup!(name)
+      self.acc = self.env.lookup(name)
       self.next = next
     }
     Set(name, next) => {
-      self.env.set_var!(name, self.acc)
+      self.env.set_var(name, self.acc)
       self.acc = Value::default()
       self.next = next
     }
@@ -76,12 +76,12 @@ pub fn run_one_step(self : VM) -> Unit!SchemeException {
       self.rib[i] = self.acc
       self.next = next
     }
-    Apply => self.apply!()
+    Apply => self.apply()
   }
 }
 
 ///|
-fn apply(self : VM) -> Unit!SchemeException {
+fn apply(self : VM) -> Unit raise SchemeException {
   match self.acc {
     Closure(clo) => {
       guard self.rib.length() == clo.parm_names.length() else {
@@ -93,23 +93,23 @@ fn apply(self : VM) -> Unit!SchemeException {
     Primitive(p) =>
       match p {
         Normal(body, ..) => {
-          self.acc = body!(self.rib)
+          self.acc = body(self.rib)
           self.next = Return
         }
         CallCC => {
           guard self.rib is [f] else { raise ArgumentCount }
           self.acc = f
           self.rib[0] = Continuation(self.stack)
-          self.apply!()
+          self.apply()
         }
         Apply => {
           guard self.rib is [f, v] else { raise ArgumentCount }
-          guard list_tail_and_length(v) is (Nil, length) else {
+          guard v.list_tail_and_length() is (Nil, length) else {
             raise TypeError(1)
           }
           self.acc = f
           self.rib = v.unsafe_to_fixedarray(length)
-          self.apply!()
+          self.apply()
         }
       }
     Continuation(stack) => {
@@ -123,11 +123,11 @@ fn apply(self : VM) -> Unit!SchemeException {
 }
 
 ///|
-pub fn run_to_halt(self : VM) -> Unit!SchemeException {
+pub fn run_to_halt(self : VM) -> Unit raise SchemeException {
   for {
     match (self.next, self.stack) {
       (Return, None) => break
-      _ => self.run_one_step!()
+      _ => self.run_one_step()
     }
   }
 }
