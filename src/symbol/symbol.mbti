@@ -4,9 +4,7 @@ package "FlyCloudC/scheme/symbol"
 
 // Types and methods
 type Symbol
-impl Symbol {
-  of(String) -> Self
-}
+fn Symbol::of(String) -> Self
 impl Default for Symbol
 impl Eq for Symbol
 impl Hash for Symbol

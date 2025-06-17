@@ -12,7 +12,7 @@ pub impl Show for Primitive with output(self, logger) {
   logger
   ..write_string("#<procedure ")
   ..write_object(self.name())
-  .write_char('>')
+  ..write_char('>')
 }
 
 ///|
@@ -20,20 +20,21 @@ pub impl Show for Closure with output(self, logger) {
   match self.name {
     None => logger.write_string("#<procedure>")
     Some(name) =>
-      logger..write_string("#<procedure ")..write_object(name).write_char('>')
+      logger..write_string("#<procedure ")..write_object(name)..write_char('>')
   }
 }
 
 // +---------------------------+
 // |           Value           |
 // +---------------------------+
+
 ///|
 pub impl Default for Value with default() {
   Value::symbol("done")
 }
 
 ///|
-pub fn eq(self : Value, other : Value) -> Bool {
+pub fn Value::eq(self : Value, other : Value) -> Bool {
   match (self, other) {
     (Nil | True | False | Pair(_) | Int(_) | Double(_) | String(_), _) =>
       physical_equal(self, other)
@@ -83,7 +84,7 @@ pub impl Show for Value with output(self, logger) {
           logger..write_char(' ').write_object(l)
           continue r
         }
-        v => logger..write_string(" . ")..write_object(v).write_char(')')
+        v => logger..write_string(" . ")..write_object(v)..write_char(')')
       }
     }
     Int(i) => logger.write_object(i)
@@ -114,25 +115,25 @@ pub fn Value::bool(b : Bool) -> Value {
 
 ///|
 pub fn Value::list(vs : FixedArray[Value]) -> Value {
-  vs.rev_fold(init=Nil, fn { acc, x => Pair(x, acc) })
+  vs.rev_fold(init=Nil, (acc, x) => Pair(x, acc))
 }
 
 ///|
 pub fn list_tail_and_length(self : Value) -> (Value, Int) {
-  loop self, 0 {
-    Pair(_, r), len => continue r, len + 1
-    tail, len => (tail, len)
+  loop (self, 0) {
+    (Pair(_, r), len) => continue (r, len + 1)
+    (tail, len) => (tail, len)
   }
 }
 
 ///|
 pub fn unsafe_to_fixedarray(self : Value, length : Int) -> FixedArray[Value] {
   let res = FixedArray::make(length, Value::default())
-  loop 0, self {
-    i, Pair(l, r) => {
+  loop (0, self) {
+    (i, Pair(l, r)) => {
       res[i] = l
-      continue i + 1, r
+      continue (i + 1, r)
     }
-    _, _ => res
+    _ => res
   }
 }

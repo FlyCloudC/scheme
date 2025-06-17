@@ -2,7 +2,7 @@
 typealias @symbol.Symbol
 
 ///|
-pub(all) type! SchemeException {
+pub(all) suberror SchemeException {
   UndefineVar
   CallNonProcedure
   ArgumentCount
@@ -21,7 +21,7 @@ pub struct Closure {
 
 ///|
 pub(all) enum Primitive {
-  Normal(name~ : Symbol, (FixedArray[Value]) -> Value!SchemeException)
+  Normal(name~ : Symbol, (FixedArray[Value]) -> Value raise SchemeException)
   CallCC
   Apply
 }
@@ -106,7 +106,7 @@ pub struct Frame {
 typealias @tokenizer.Token
 
 ///|
-pub type! ParseException {
+pub suberror ParseException {
   UnexpectedToken(Token)
   MoreThanOneAfterDot(Token)
   MisTokenAfterDot

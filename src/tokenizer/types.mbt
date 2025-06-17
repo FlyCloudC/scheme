@@ -1,5 +1,5 @@
 ///|
-pub type! ReadException {
+pub suberror ReadException {
   UnterminatedString(String, Int)
   InvalidStringEscaping(String, Char, Int)
   InvalidAfterSharp(Char?, Int)

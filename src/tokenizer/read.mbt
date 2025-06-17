@@ -20,7 +20,7 @@ fn peek(self : Tokenizer) -> Char? {
 }
 
 ///|
-pub fn read(code : String) -> Array[(Token, Int, Int)]!ReadException {
+pub fn read(code : String) -> Array[(Token, Int, Int)] raise ReadException {
   let self : Tokenizer = { code: code.to_array(), res: Array::new(), i: 0 }
   while self.peek() is Some(c) {
     self.next()
@@ -28,7 +28,7 @@ pub fn read(code : String) -> Array[(Token, Int, Int)]!ReadException {
       self.read_comment()
     } else if not(is_space(c)) {
       let begin = self.i - 1
-      let next_token = self.read_next_token!(c)
+      let next_token = self.read_next_token(c)
       let end = self.i
       self.res.push((next_token, begin, end))
     }
@@ -37,7 +37,7 @@ pub fn read(code : String) -> Array[(Token, Int, Int)]!ReadException {
 }
 
 ///|
-fn read_next_token(self : Tokenizer, c : Char) -> Token!ReadException {
+fn read_next_token(self : Tokenizer, c : Char) -> Token raise ReadException {
   match c {
     // 特殊 Token
     '(' => Lp
@@ -55,7 +55,7 @@ fn read_next_token(self : Tokenizer, c : Char) -> Token!ReadException {
       c
     }
     '0'..='9' as c => self.read_number(c)
-    '"' => self.read_string!()
+    '"' => self.read_string()
     _ => self.read_symbol(c)
   }
 }
@@ -63,22 +63,24 @@ fn read_next_token(self : Tokenizer, c : Char) -> Token!ReadException {
 ///|
 fn read_number(self : Tokenizer, c : Char) -> Token {
   // Todo: Int out of range
-  loop self.peek(), c.to_int() - '0' {
-    Some('0'..='9' as c), acc =>
-      continue self..next().peek(), acc * 10 + (c.to_int() - '0')
-    Some('.'), acc => self..next().read_double(acc)
-    _, acc => Int(acc)
+  loop (self.peek(), c.to_int() - '0') {
+    (Some('0'..='9' as c), acc) =>
+      continue (self..next().peek(), acc * 10 + (c.to_int() - '0'))
+    (Some('.'), acc) => self..next().read_double(acc)
+    (_, acc) => Int(acc)
   }
 }
 
 ///|
 fn read_double(self : Tokenizer, z : Int) -> Token {
-  loop self.peek(), z.to_double(), 0.1 {
-    Some('0'..='9' as c), acc, i =>
-      continue self..next().peek(),
-        acc + i * (c.to_int() - '0').to_double(),
-        i / 10
-    _, acc, _ => Double(acc)
+  loop (self.peek(), z.to_double(), 0.1) {
+    (Some('0'..='9' as c), acc, i) =>
+      continue (
+          self..next().peek(),
+          acc + i * (c.to_int() - '0').to_double(),
+          i / 10,
+        )
+    (_, acc, _) => Double(acc)
   }
 }
 
@@ -92,7 +94,7 @@ fn read_comment(self : Tokenizer) -> Unit {
 }
 
 ///|
-fn read_string(self : Tokenizer) -> Token!ReadException {
+fn read_string(self : Tokenizer) -> Token raise ReadException {
   let begin = self.i - 1
   let b = StringBuilder::new()
   loop self.peek() {
@@ -119,7 +121,8 @@ fn read_string(self : Tokenizer) -> Token!ReadException {
 
 ///|
 fn read_symbol(self : Tokenizer, c : Char) -> Token {
-  let b = StringBuilder::new()..write_char(c)
+  let b = StringBuilder::new()
+  b.write_char(c)
   while self.peek() is Some(c) && not(is_symbol_end(c)) {
     b.write_char(c)
     self.next()
@@ -133,8 +136,8 @@ test "fact" {
   #|  (if (= x 0)
   #|      1 ; base case
   #|      (* x (fact (- x 1)))))
-  |> read!()
-  |> assert_eq!([
+  |> read()
+  |> assert_eq([
     (Lp, 0, 1),
     (Symbol("define"), 1, 7),
     (Lp, 8, 9),
@@ -172,8 +175,8 @@ test "special" {
   #|'(1 2 3)
   #|#(a)
   #|("ada" 1.2 "wadwa\";;'")
-  |> read!()
-  |> assert_eq!([
+  |> read()
+  |> assert_eq([
     (Quote, 0, 1),
     (Symbol("a"), 1, 2),
     (Quote, 3, 4),
@@ -196,8 +199,8 @@ test "special" {
 ///|
 test "unicode" {
   #|(中 "🐇")
-  |> read!()
-  |> assert_eq!([
+  |> read()
+  |> assert_eq([
     (Lp, 0, 1),
     (Symbol("中"), 1, 2),
     (String("🐇"), 3, 6),
