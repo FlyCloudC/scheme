@@ -55,11 +55,11 @@ test "fact" {
   program
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|7
       #|120
       #|
-    ,
+    ),
   )
 }
 
@@ -90,7 +90,7 @@ test "OOP" {
   code1
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|100
       #|1000
       #|80
@@ -98,7 +98,7 @@ test "OOP" {
       #|80
       #|970
       #|
-    ,
+    ),
   )
 }
 
@@ -136,11 +136,11 @@ test "sort" {
   run_and_to_string(code0, env) |> ignore
   run_and_to_string(code1, env)
   |> inspect(
-    content=
+    content=(
       #|(3 5 2 4 1)
       #|(5 4 3 2 1)
       #|
-    ,
+    ),
   )
 }
 
@@ -180,12 +180,12 @@ test "call/cc 1" {
   code
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|(1 . 2)
       #|#<continuation>
       #|(1 . 3)
       #|
-    ,
+    ),
   )
 }
 
@@ -210,11 +210,11 @@ test "call/cc 2" {
   code
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|#t
       #|#f
       #|
-    ,
+    ),
   )
 }
 
@@ -227,10 +227,10 @@ test "apply" {
   code
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|#(1 2 3 4 5)
       #|
-    ,
+    ),
   )
 }
 
@@ -255,13 +255,13 @@ test "expand" {
   code
   |> run_and_to_string(env)
   |> inspect(
-    content=
+    content=(
       #|3
       #|#t
       #|#f
       #|#t
       #|2
       #|
-    ,
+    ),
   )
 }

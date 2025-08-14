@@ -123,7 +123,7 @@ pub fn Value::to_core_form(self : Value) -> CoreForm raise FromSexpError {
 ///|
 fn to_core_from_list(
   ls : Value,
-  length : Int
+  length : Int,
 ) -> (FixedArray[CoreForm], Value) raise FromSexpError {
   let dist = FixedArray::make(length, CoreForm::default())
   for i = 0, r = ls; i < length; {

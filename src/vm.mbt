@@ -1,7 +1,7 @@
 ///|
 pub fn VM::new(
   inst~ : Inst = Return,
-  env~ : Environment = Environment::base()
+  env~ : Environment = Environment::base(),
 ) -> VM {
   { //
     acc: Value::default(),

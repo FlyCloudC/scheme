@@ -33,7 +33,7 @@ pub fn lookup(self : Environment, name : Symbol) -> Value raise SchemeException 
 pub fn set_var(
   self : Environment,
   name : Symbol,
-  new_value : Value
+  new_value : Value,
 ) -> Unit raise SchemeException {
   match self.binds.get(name) {
     Some(_) => self.binds[name] = new_value
@@ -51,7 +51,7 @@ pub fn extend(
   self : Environment,
   names : FixedArray[Symbol],
   values : FixedArray[Value],
-  closure : Closure
+  closure : Closure,
 ) -> Environment {
   let binds = @hashmap.new(capacity=names.length())
   values.eachi(fn(i, v) { binds[names[i]] = v })

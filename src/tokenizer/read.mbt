@@ -132,10 +132,12 @@ fn read_symbol(self : Tokenizer, c : Char) -> Token {
 
 ///|
 test "fact" {
-  #|(define (fact x)
-  #|  (if (= x 0)
-  #|      1 ; base case
-  #|      (* x (fact (- x 1)))))
+  (
+    #|(define (fact x)
+    #|  (if (= x 0)
+    #|      1 ; base case
+    #|      (* x (fact (- x 1)))))
+  )
   |> read()
   |> assert_eq([
     (Lp, 0, 1),
@@ -171,10 +173,12 @@ test "fact" {
 
 ///|
 test "special" {
-  #|'a
-  #|'(1 2 3)
-  #|#(a)
-  #|("ada" 1.2 "wadwa\";;'")
+  (
+    #|'a
+    #|'(1 2 3)
+    #|#(a)
+    #|("ada" 1.2 "wadwa\";;'")
+  )
   |> read()
   |> assert_eq([
     (Quote, 0, 1),
@@ -198,7 +202,9 @@ test "special" {
 
 ///|
 test "unicode" {
-  #|(中 "🐇")
+  (
+    #|(中 "🐇")
+  )
   |> read()
   |> assert_eq([
     (Lp, 0, 1),

@@ -1,7 +1,7 @@
 ///|
 fn add_primitive_from_map(
   self : Environment,
-  m : Map[String, (FixedArray[Value]) -> Value raise SchemeException]
+  m : Map[String, (FixedArray[Value]) -> Value raise SchemeException],
 ) -> Unit {
   for k, v in m {
     let s = Symbol::of(k)
@@ -54,7 +54,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     args : FixedArray[Value],
     i : Int,
     init : Double,
-    fdd : (Double, Double) -> Double
+    fdd : (Double, Double) -> Double,
   ) raise SchemeException {
     let mut accd = init
     for i in i..<args.length() {
@@ -74,7 +74,7 @@ pub fn add_number_primitive(self : Environment) -> Unit {
     i : Int,
     init : Int,
     fii : (Int, Int) -> Int,
-    fdd : (Double, Double) -> Double
+    fdd : (Double, Double) -> Double,
   ) raise SchemeException {
     let mut acci = init
     for i in i..<args.length() {

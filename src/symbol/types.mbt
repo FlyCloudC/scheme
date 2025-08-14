@@ -1,5 +1,5 @@
 ///|
-type Symbol Int derive(Hash)
+struct Symbol(Int) derive(Hash)
 
 ///|
 let map_str_to_sym : @hashmap.T[String, Symbol] = @hashmap.new(capacity=100)
@@ -27,17 +27,17 @@ pub fn Symbol::of(str : String) -> Symbol {
 
 ///|
 pub impl Eq for Symbol with op_equal(a, b) {
-  a.inner() == b.inner()
+  a.0 == b.0
 }
 
 ///|
 pub impl Show for Symbol with output(self, logger) {
-  logger.write_string(map_sym_id_to_str[self.inner()])
+  logger.write_string(map_sym_id_to_str[self.0])
 }
 
 ///|
 pub impl Show for Symbol with to_string(self) {
-  map_sym_id_to_str[self.inner()]
+  map_sym_id_to_str[self.0]
 }
 
 ///|

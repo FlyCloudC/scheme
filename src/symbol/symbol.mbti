@@ -1,6 +1,9 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/scheme/symbol"
 
 // Values
+
+// Errors
 
 // Types and methods
 type Symbol

@@ -25,4 +25,4 @@ priv struct Tokenizer {
   code : Array[Char]
   res : Array[(Token, Int, Int)]
   mut i : Int
-} derive(Show)
+}

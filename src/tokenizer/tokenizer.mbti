@@ -1,9 +1,10 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/scheme/tokenizer"
 
 // Values
 fn read(String) -> Array[(Token, Int, Int)] raise ReadException
 
-// Types and methods
+// Errors
 pub suberror ReadException {
   UnterminatedString(String, Int)
   InvalidStringEscaping(String, Char, Int)
@@ -11,6 +12,7 @@ pub suberror ReadException {
 }
 impl Show for ReadException
 
+// Types and methods
 pub(all) enum Token {
   Lp
   Rp

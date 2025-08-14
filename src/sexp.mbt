@@ -73,13 +73,13 @@ pub impl ToSexp for Json with to_sexp(self) {
     Null => Nil
     True => True
     False => False
-    Number(x) => Int(x.to_int())
+    Number(x, ..) => Int(x.to_int())
     String(x) => Value::symbol(x)
     Array(xs) => to_sexp(xs)
     Object({ "type": "inproper list", "ls": Array(xs), "r": r, .. }) =>
       xs.rev_fold(init=to_sexp(r), (acc, x) => Pair(to_sexp(x), acc))
     Object({ "type": "string", "value": String(s), .. }) => String(s)
-    Object({ "type": "double", "value": Number(d), .. }) => Double(d)
+    Object({ "type": "double", "value": Number(d, ..), .. }) => Double(d)
     Object({ "type": "vector", "value": Array(arr), .. }) =>
       FixedArray::makei(arr.length(), i => to_sexp(arr[i])) |> Vector
     Object(m) => Pair(Value::symbol("object"), Pair(to_sexp(m.iter2()), Nil))

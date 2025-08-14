@@ -1,3 +1,4 @@
+// Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/scheme"
 
 import(
@@ -7,11 +8,32 @@ import(
 )
 
 // Values
-fn compile(CoreForm) -> Inst
-
 fn parse(String) -> Array[Value] raise ParseException
 
 fn[Self : ToSexp] to_sexp(Self) -> Value
+
+// Errors
+pub(all) suberror FromSexpError Value
+impl Show for FromSexpError
+
+pub suberror ParseException {
+  UnexpectedToken(@tokenizer.Token)
+  MoreThanOneAfterDot(@tokenizer.Token)
+  MisTokenAfterDot
+  UnexpectedEndOfInput
+  ReadException(@tokenizer.ReadException)
+}
+impl Show for ParseException
+
+pub(all) suberror SchemeException {
+  UndefineVar
+  CallNonProcedure
+  ArgumentCount
+  TypeError(Int)
+  InvalidArgument(Int)
+  DevideZero
+}
+impl Show for SchemeException
 
 // Types and methods
 pub struct Closure {
@@ -34,6 +56,7 @@ pub enum CoreForm {
   Define(@symbol.Symbol, CoreForm)
 }
 fn CoreForm::compile(Self) -> Inst
+fnalias CoreForm::compile
 impl FromSexp for CoreForm
 impl ToSexp for CoreForm
 impl Show for CoreForm
@@ -63,9 +86,6 @@ pub struct Frame {
   stack : Frame?
 }
 
-pub(all) suberror FromSexpError Value
-impl Show for FromSexpError
-
 pub enum Inst {
   Const(Value, Inst)
   Refer(@symbol.Symbol, Inst)
@@ -80,15 +100,6 @@ pub enum Inst {
   Define(@symbol.Symbol, Inst)
 }
 
-pub suberror ParseException {
-  UnexpectedToken(@tokenizer.Token)
-  MoreThanOneAfterDot(@tokenizer.Token)
-  MisTokenAfterDot
-  UnexpectedEndOfInput
-  ReadException(@tokenizer.ReadException)
-}
-impl Show for ParseException
-
 pub(all) enum Primitive {
   Normal(name~ : @symbol.Symbol, (FixedArray[Value]) -> Value raise SchemeException)
   CallCC
@@ -97,16 +108,6 @@ pub(all) enum Primitive {
 fn Primitive::name(Self) -> @symbol.Symbol
 impl Show for Primitive
 
-pub(all) suberror SchemeException {
-  UndefineVar
-  CallNonProcedure
-  ArgumentCount
-  TypeError(Int)
-  InvalidArgument(Int)
-  DevideZero
-}
-impl Show for SchemeException
-
 pub(all) struct VM {
   mut acc : Value
   mut next : Inst
@@ -114,7 +115,7 @@ pub(all) struct VM {
   mut rib : FixedArray[Value]
   mut stack : Frame?
 }
-fn VM::new(inst~ : Inst = .., env~ : Environment = ..) -> Self
+fn VM::new(inst? : Inst, env? : Environment) -> Self
 fn VM::run_one_step(Self) -> Unit raise SchemeException
 fn VM::run_to_halt(Self) -> Unit raise SchemeException
 
