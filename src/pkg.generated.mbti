@@ -60,7 +60,7 @@ pub enum CoreForm {
   SelfEval(Value)
   Var(@symbol.Symbol)
   Quote(Value)
-  Lambda(FixedArray[@symbol.Symbol], CoreForm, name~ : @symbol.Symbol?)
+  Lambda(FixedArray[@symbol.Symbol], CoreForm)
   Begin(FixedArray[CoreForm], CoreForm)
   If(CoreForm, CoreForm, CoreForm?)
   Apply(CoreForm, FixedArray[CoreForm])

@@ -4,7 +4,7 @@ pub fn CoreForm::compile(self : CoreForm) -> Inst {
     match exp {
       SelfEval(v) | Quote(v) => Const(v, next)
       Var(name) => Refer(name, next)
-      Lambda(parm_names, body, ..) => {
+      Lambda(parm_names, body) => {
         let body = then(body, Return)
         let name = match next {
           Define(name, _) | Set(name, _) => Some(name)

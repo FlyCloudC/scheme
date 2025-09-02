@@ -10,9 +10,9 @@ pub impl ToSexp for CoreForm with to_sexp(self) {
     SelfEval(v) => v
     Var(name) => Symbol(name)
     Quote(v) => to_sexp([s("quote"), v])
-    Lambda(parms, Begin(bodys, bodye), ..) =>
+    Lambda(parms, Begin(bodys, bodye)) =>
       to_sexp((s("lambda"), (parms, [..bodys, bodye])))
-    Lambda(parms, body, ..) => //
+    Lambda(parms, body) => //
       to_sexp((s("lambda"), (parms, (body, Nil))))
     Begin(es, ee) => to_sexp((s("begin"), [..es, ee]))
     If(e1, e2, Some(e3)) => to_sexp((s("if"), [e1, e2, e3]))
@@ -93,7 +93,7 @@ pub fn Value::to_core_form(self : Value) -> CoreForm raise FromSexpError {
       }
       res
     }
-    Lambda(parms, to_seq(bodys), name=None)
+    Lambda(parms, to_seq(bodys))
   }
   let to_args = fn(r) raise FromSexpError {
     let length = proper_list_length(r)
