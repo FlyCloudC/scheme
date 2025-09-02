@@ -17,7 +17,7 @@ fn run_and_to_string(code : String, env : Environment) -> String raise {
 ///|
 test "fact" {
   let env = Environment::base()
-  env.add_number_primitive()
+  env.define_vars(number_primitive)
   let program =
     #|(+ 1 (* 2 3))
     #|(define (fact x)
@@ -39,7 +39,7 @@ test "fact" {
 ///|
 test "OOP" {
   let env = Environment::base()
-  env..add_number_primitive()..add_other_primitive()
+  env.define_vars(number_primitive + other_primitive)
   let code0 =
     #|(define (make-account money)
     #|  (define (take x)
@@ -78,7 +78,7 @@ test "OOP" {
 ///|
 test "sort" {
   let env = Environment::base()
-  env..add_number_primitive()..add_pair_primitive()
+  env.define_vars(number_primitive + pair_primitive)
   let code0 =
     #|(define (max2 a b)
     #|  (if (> a b) a b))
@@ -143,7 +143,7 @@ test "proper tail call" {
 ///|
 test "call/cc 1" {
   let env = Environment::base()
-  env..add_other_primitive()..add_pair_primitive()
+  env.define_vars(other_primitive + pair_primitive)
   let code =
     #|(define *k* #f)
     #|(cons 1 (call/cc (lambda (k) (set! *k* k) 2)))
@@ -165,7 +165,7 @@ test "call/cc 1" {
 ///|
 test "call/cc 2" {
   let env = Environment::base()
-  env..add_other_primitive()..add_pair_primitive()
+  env.define_vars(other_primitive + pair_primitive)
   let code =
     #|(define (for-each ls f)
     #|  (if (pair? ls)
@@ -194,7 +194,7 @@ test "call/cc 2" {
 ///|
 test "apply" {
   let env = Environment::base()
-  env..add_other_primitive()..add_pair_primitive()..add_vector_primitive()
+  env.define_vars(other_primitive + pair_primitive + vector_primitive)
   let code =
     #|(apply vector '(1 2 3 4 5))
   code
@@ -210,7 +210,7 @@ test "apply" {
 ///|
 test "expand" {
   let env = Environment::base()
-  env.add_number_primitive()
+  env.define_vars(number_primitive)
   let code =
     #|(let ((x 1)
     #|      (y 2))

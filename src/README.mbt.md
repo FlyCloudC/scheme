@@ -13,7 +13,7 @@ Reference:
 ```moonbit
 test "example in README" {
   let env = Environment::base()
-  env.add_number_primitive()
+  env.define_vars(number_primitive)
   let code =
     #|(define (fact x)
     #|   (if (= x 0)

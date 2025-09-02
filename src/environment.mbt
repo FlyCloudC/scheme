@@ -47,6 +47,16 @@ pub fn define_var(self : Environment, name : Symbol, new_value : Value) -> Unit 
 }
 
 ///|
+pub fn define_vars(
+  self : Environment,
+  name_value : Iter[(Symbol, Value)],
+) -> Unit {
+  for nv in name_value {
+    self.binds[nv.0] = nv.1
+  }
+}
+
+///|
 pub fn extend(
   self : Environment,
   names : FixedArray[Symbol],

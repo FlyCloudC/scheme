@@ -8,9 +8,21 @@ import(
 )
 
 // Values
+let all_base_primitive : Iter[(@symbol.Symbol, Value)]
+
+let number_primitive : Iter[(@symbol.Symbol, Value)]
+
+let other_primitive : Iter[(@symbol.Symbol, Value)]
+
+let pair_primitive : Iter[(@symbol.Symbol, Value)]
+
 fn parse(String) -> Array[Value] raise ParseException
 
+let string_primitive : Iter[(@symbol.Symbol, Value)]
+
 fn[Self : ToSexp] to_sexp(Self) -> Value
+
+let vector_primitive : Iter[(@symbol.Symbol, Value)]
 
 // Errors
 pub(all) suberror FromSexpError Value
@@ -66,14 +78,9 @@ pub(all) struct Environment {
   next : Environment?
   closure : Closure?
 }
-fn Environment::add_all_base_primitive(Self) -> Unit
-fn Environment::add_number_primitive(Self) -> Unit
-fn Environment::add_other_primitive(Self) -> Unit
-fn Environment::add_pair_primitive(Self) -> Unit
-fn Environment::add_string_primitive(Self) -> Unit
-fn Environment::add_vector_primitive(Self) -> Unit
 fn Environment::base() -> Self
 fn Environment::define_var(Self, @symbol.Symbol, Value) -> Unit
+fn Environment::define_vars(Self, Iter[(@symbol.Symbol, Value)]) -> Unit
 fn Environment::extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
 fn Environment::lookup(Self, @symbol.Symbol) -> Value raise SchemeException
 fn Environment::set_var(Self, @symbol.Symbol, Value) -> Unit raise SchemeException
