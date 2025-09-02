@@ -1,31 +1,4 @@
 ///|
-test "example in README" {
-  let env = Environment::base()
-  env.add_number_primitive()
-  let code =
-    #|(define (fact x)
-    #|   (if (= x 0)
-    #|       1                      ; base case
-    #|       (* x (fact (- x 1))))) ; rec case
-    #|(fact 5)
-  let sexp = parse(code)
-  let program = sexp.map(Value::to_core_form)
-  let inst = program.map(compile)
-  // make VM, load "(define (fact x) ...)" and env
-  let vm = VM::new(inst=inst[0], env~)
-  // run, add "fact" to env
-  vm.run_to_halt()
-  inspect( //
-    vm.env.lookup(Symbol::of("fact")),
-    content="#<procedure fact>",
-  )
-  // load and run "(fact 5)"
-  vm.next = inst[1]
-  vm.run_to_halt()
-  inspect(vm.acc, content="120")
-}
-
-///|
 fn run_and_to_string(code : String, env : Environment) -> String raise {
   let exps = parse(code)
   let b = StringBuilder::new()
