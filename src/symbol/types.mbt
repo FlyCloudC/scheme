@@ -1,5 +1,5 @@
 ///|
-struct Symbol(Int) derive(Hash)
+struct Symbol(Int) derive(Eq, Hash)
 
 ///|
 let map_str_to_sym : @hashmap.T[String, Symbol] = @hashmap.new(capacity=100)
@@ -8,26 +8,12 @@ let map_str_to_sym : @hashmap.T[String, Symbol] = @hashmap.new(capacity=100)
 let map_sym_id_to_str : Array[String] = []
 
 ///|
-let get_next_id : () -> Int = {
-  let mut i = -1
-  () => {
-    i += 1
-    i
-  }
-}
-
-///|
 pub fn Symbol::of(str : String) -> Symbol {
   map_str_to_sym.get_or_init(str, () => {
-    let res = Symbol(get_next_id())
+    let id = map_sym_id_to_str.length()
     map_sym_id_to_str.push(str)
-    res
+    Symbol(id)
   })
-}
-
-///|
-pub impl Eq for Symbol with op_equal(a, b) {
-  a.0 == b.0
 }
 
 ///|
