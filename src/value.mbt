@@ -38,7 +38,7 @@ pub fn Value::eq(self : Value, other : Value) -> Bool {
   match (self, other) {
     (Nil | True | False | Pair(_) | Int(_) | Double(_) | String(_), _) =>
       physical_equal(self, other)
-    (Symbol(a), Symbol(b)) => Symbol::op_equal(a, b)
+    (Symbol(a), Symbol(b)) => Symbol::equal(a, b)
     (Vector(a), Vector(b)) => physical_equal(a, b)
     (Primitive(a), Primitive(b)) => physical_equal(a, b)
     (Closure(a), Closure(b)) => physical_equal(a, b)
@@ -47,13 +47,13 @@ pub fn Value::eq(self : Value, other : Value) -> Bool {
 }
 
 ///|
-impl Eq for Value with op_equal(self, other) {
+impl Eq for Value with equal(self, other) {
   match (self, other) {
     (Nil, Nil) | (True, True) | (False, False) => true
-    (Int(a), Int(b)) => Int::op_equal(a, b)
-    (Double(a), Double(b)) => Double::op_equal(a, b)
-    (Symbol(a), Symbol(b)) => Symbol::op_equal(a, b)
-    (String(a), String(b)) => String::op_equal(a, b)
+    (Int(a), Int(b)) => Int::equal(a, b)
+    (Double(a), Double(b)) => Double::equal(a, b)
+    (Symbol(a), Symbol(b)) => Symbol::equal(a, b)
+    (String(a), String(b)) => String::equal(a, b)
     (Primitive(a), Primitive(b)) => physical_equal(a, b)
     (Closure(a), Closure(b)) => physical_equal(a, b)
     (Pair(_), Pair(_)) | (Vector(_), Vector(_)) => recur_equal(self, other)
@@ -65,9 +65,8 @@ impl Eq for Value with op_equal(self, other) {
 fn recur_equal(a : Value, b : Value) -> Bool {
   // Todo: According to R7RS, equal must terminate
   match (a, b) {
-    (Pair(la, ra), Pair(lb, rb)) =>
-      Value::op_equal(la, lb) && Value::op_equal(ra, rb)
-    (Vector(a), Vector(b)) => FixedArray::op_equal(a, b)
+    (Pair(la, ra), Pair(lb, rb)) => Value::equal(la, lb) && Value::equal(ra, rb)
+    (Vector(a), Vector(b)) => FixedArray::equal(a, b)
     _ => panic()
   }
 }

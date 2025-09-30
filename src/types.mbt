@@ -44,7 +44,7 @@ pub(all) enum Value {
 
 ///|
 pub(all) struct Environment {
-  binds : @hashmap.T[Symbol, Value]
+  binds : @hashmap.HashMap[Symbol, Value]
   next : Environment?
   closure : Closure?
 }

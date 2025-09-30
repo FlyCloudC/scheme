@@ -74,7 +74,7 @@ impl ToSexp for CoreForm
 impl Show for CoreForm
 
 pub(all) struct Environment {
-  binds : @hashmap.T[@symbol.Symbol, Value]
+  binds : @hashmap.HashMap[@symbol.Symbol, Value]
   next : Environment?
   closure : Closure?
 }

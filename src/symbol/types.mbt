@@ -2,7 +2,9 @@
 struct Symbol(Int) derive(Eq, Hash)
 
 ///|
-let map_str_to_sym : @hashmap.T[String, Symbol] = @hashmap.new(capacity=100)
+let map_str_to_sym : @hashmap.HashMap[String, Symbol] = @hashmap.new(
+  capacity=100,
+)
 
 ///|
 let map_sym_id_to_str : Array[String] = []
