@@ -1,28 +1,28 @@
 ///|
 pub suberror ReadException {
-  UnterminatedString(String, Int)
-  InvalidStringEscaping(String, Char, Int)
-  InvalidAfterSharp(Char?, Int)
+  UnterminatedString(StringView)
+  InvalidStringEscaping(StringView)
+  InvalidAfterSharp(StringView)
 } derive(Show)
 
 ///|
 pub(all) enum Token {
-  Lp // (
-  Rp // )
-  SLp // #(
-  Quote // '
-  Dot // .
-  ST // #t
-  SF // #f
+  /// (
+  Lp
+  /// )
+  Rp
+  /// #(
+  SLp
+  /// '
+  Quote
+  /// .
+  Dot
+  /// #t
+  ST
+  /// #f
+  SF
   Int(Int)
   Double(Double)
   Symbol(String)
   String(String)
 } derive(Show, Eq)
-
-///|
-priv struct Tokenizer {
-  code : Array[Char]
-  res : Array[(Token, Int, Int)]
-  mut i : Int
-}

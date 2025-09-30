@@ -2,13 +2,13 @@
 package "FlyCloudC/scheme/tokenizer"
 
 // Values
-fn read(String) -> Array[(Token, Int, Int)] raise ReadException
+fn read(StringView) -> Array[(Token, Int, Int)] raise ReadException
 
 // Errors
 pub suberror ReadException {
-  UnterminatedString(String, Int)
-  InvalidStringEscaping(String, Char, Int)
-  InvalidAfterSharp(Char?, Int)
+  UnterminatedString(StringView)
+  InvalidStringEscaping(StringView)
+  InvalidAfterSharp(StringView)
 }
 impl Show for ReadException
 

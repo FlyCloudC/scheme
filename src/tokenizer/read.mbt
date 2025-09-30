@@ -1,133 +1,108 @@
 ///|
-fn is_space(c : Char) -> Bool {
-  c is (' ' | '\n' | '\r' | '\t')
-}
-
-///|
-fn is_symbol_end(c : Char) -> Bool {
-  is_space(c) || c is ('(' | ')' | '#' | '\'')
-}
-
-///|
-fn next(self : Tokenizer) -> Unit {
-  self.i += 1
-}
-
-///|
-fn peek(self : Tokenizer) -> Char? {
-  guard self.i < self.code.length() else { None }
-  Some(self.code[self.i])
-}
-
-///|
-pub fn read(code : String) -> Array[(Token, Int, Int)] raise ReadException {
-  let self : Tokenizer = { code: code.to_array(), res: Array::new(), i: 0 }
-  while self.peek() is Some(c) {
-    self.next()
-    if c == ';' {
-      self.read_comment()
-    } else if not(is_space(c)) {
-      let begin = self.i - 1
-      let next_token = self.read_next_token(c)
-      let end = self.i
-      self.res.push((next_token, begin, end))
-    }
+pub fn read(code : StringView) -> Array[(Token, Int, Int)] raise ReadException {
+  let tokens = []
+  loop code {
+    [] => ()
+    [c, .. rest] as c_rest =>
+      match c {
+        ' ' | '\n' | '\r' | '\t' => continue rest
+        ';' => continue read_comment(rest)
+        _ => {
+          let (t, rest) = read_next_token(c, rest)
+          tokens.push((t, c_rest.start_offset(), rest.start_offset()))
+          continue rest
+        }
+      }
   }
-  self.res
+  tokens
 }
 
 ///|
-fn read_next_token(self : Tokenizer, c : Char) -> Token raise ReadException {
+fn read_next_token(
+  c : Char,
+  rest : StringView,
+) -> (Token, StringView) raise ReadException {
   match c {
     // 特殊 Token
-    '(' => Lp
-    ')' => Rp
-    '\'' => Quote
-    '.' => Dot
-    '#' => {
-      let c = match self.peek() {
-        Some('(') => SLp
-        Some('t') => ST
-        Some('f') => SF
-        co => raise InvalidAfterSharp(co, self.i - 1)
+    '(' => (Lp, rest)
+    ')' => (Rp, rest)
+    '\'' => (Quote, rest)
+    '.' => (Dot, rest)
+    '#' =>
+      match rest {
+        ['(', .. rest] => (SLp, rest)
+        ['t', .. rest] => (ST, rest)
+        ['f', .. rest] => (SF, rest)
+        _ => raise InvalidAfterSharp(rest)
       }
-      self.next()
-      c
-    }
-    '0'..='9' as c => self.read_number(c)
-    '"' => self.read_string()
-    _ => self.read_symbol(c)
+    '0'..='9' as c => read_number(c, rest)
+    '"' => read_string(rest)
+    _ => read_symbol(c, rest)
   }
 }
 
 ///|
-fn read_number(self : Tokenizer, c : Char) -> Token {
-  // Todo: Int out of range
-  loop (self.peek(), c.to_int() - '0') {
-    (Some('0'..='9' as c), acc) =>
-      continue (self..next().peek(), acc * 10 + (c.to_int() - '0'))
-    (Some('.'), acc) => self..next().read_double(acc)
-    (_, acc) => Int(acc)
+fn read_number(c : Char, rest : StringView) -> (Token, StringView) {
+  loop (rest, c.to_int() - '0') {
+    (['0'..='9' as c, .. rest], acc) =>
+      continue (rest, acc * 10 + (c.to_int() - '0'))
+    (['.', .. rest], acc) => read_double(acc, rest)
+    (rest, acc) => (Int(acc), rest)
   }
 }
 
 ///|
-fn read_double(self : Tokenizer, z : Int) -> Token {
-  loop (self.peek(), z.to_double(), 0.1) {
-    (Some('0'..='9' as c), acc, i) =>
-      continue (
-          self..next().peek(),
-          acc + i * (c.to_int() - '0').to_double(),
-          i / 10,
-        )
-    (_, acc, _) => Double(acc)
+fn read_double(acc : Int, rest : StringView) -> (Token, StringView) {
+  loop (rest, acc.to_double(), 0.1) {
+    (['0'..='9' as c, .. rest], acc, i) =>
+      continue (rest, acc + i * (c.to_int() - '0').to_double(), i / 10)
+    (rest, acc, _) => (Double(acc), rest)
   }
 }
 
 ///|
-fn read_comment(self : Tokenizer) -> Unit {
-  loop self.peek() {
-    None => ()
-    Some('\n') => self.next()
-    Some(_) => continue self..next().peek()
+fn read_comment(rest : StringView) -> StringView {
+  loop rest {
+    [] => []
+    ['\n', .. rest] => rest
+    [_, .. rest] => continue rest
   }
 }
 
 ///|
-fn read_string(self : Tokenizer) -> Token raise ReadException {
-  let begin = self.i - 1
+fn read_string(rest : StringView) -> (Token, StringView) raise ReadException {
   let b = StringBuilder::new()
-  loop self.peek() {
-    Some('\\') =>
-      match self..next().peek() {
-        Some('"' | '\\' as c) => {
+  loop rest {
+    ['\\', .. rest] =>
+      match rest {
+        ['\\' | '"' as c, .. rest] => {
           b.write_char(c)
-          continue self..next().peek()
+          continue rest
         }
-        Some(c) => raise InvalidStringEscaping(b.to_string(), c, self.i)
-        None => raise UnterminatedString(b.to_string(), begin)
+        [_, ..] => raise InvalidStringEscaping(rest)
+        [] => raise UnterminatedString(rest)
       }
-    Some('"') => {
-      self.next()
-      String(b.to_string())
-    }
-    Some(c) => {
+    ['"', .. rest] => (String(b.to_string()), rest)
+    [c, .. rest] => {
       b.write_char(c)
-      continue self..next().peek()
+      continue rest
     }
-    None => raise UnterminatedString(b.to_string(), begin)
+    [] as rest => raise UnterminatedString(rest)
   }
 }
 
 ///|
-fn read_symbol(self : Tokenizer, c : Char) -> Token {
+fn read_symbol(c : Char, rest : StringView) -> (Token, StringView) {
   let b = StringBuilder::new()
   b.write_char(c)
-  while self.peek() is Some(c) && not(is_symbol_end(c)) {
-    b.write_char(c)
-    self.next()
+  loop rest {
+    [] | [' ' | '\n' | '\r' | '\t' | '(' | ')' | '\'' | '#', ..] as rest =>
+      (Symbol(b.to_string()), rest)
+    [c, .. rest] => {
+      b.write_char(c)
+      continue rest
+    }
   }
-  Symbol(b.to_string())
 }
 
 ///|
@@ -209,7 +184,7 @@ test "unicode" {
   |> assert_eq([
     (Lp, 0, 1),
     (Symbol("中"), 1, 2),
-    (String("🐇"), 3, 6),
-    (Rp, 6, 7),
+    (String("🐇"), 3, 7),
+    (Rp, 7, 8),
   ])
 }
