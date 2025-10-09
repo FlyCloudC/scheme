@@ -47,7 +47,7 @@ pub fn Value::eq(self : Value, other : Value) -> Bool {
 }
 
 ///|
-impl Eq for Value with equal(self, other) {
+pub impl Eq for Value with equal(self, other) {
   match (self, other) {
     (Nil, Nil) | (True, True) | (False, False) => true
     (Int(a), Int(b)) => Int::equal(a, b)
