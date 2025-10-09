@@ -1,46 +1,53 @@
 ///|
-fn run_and_to_string(code : String, env : Environment) -> String raise {
+let env : Environment = {
+  let env = Environment::base()
+  env.define_vars(all_base_primitive)
+  env
+}
+
+///|
+#callsite(autofill(args_loc, loc))
+pub fn run(
+  code : String,
+  content? : String = "",
+  loc~ : SourceLoc,
+  args_loc~ : ArgsLoc,
+) -> Unit raise {
   let exps = parse(code)
   let b = StringBuilder::new()
   let vm = VM::new(env~)
+  let mut first = true
   for exp in exps {
     vm.next = exp.to_core_form().compile()
     vm.run_to_halt()
     if vm.acc != Value::default() {
+      if first {
+        first = false
+      } else {
+        b.write_char('\n')
+      }
       b.write_object(vm.acc)
-      b.write_char('\n')
     }
   }
-  b.to_string()
+  inspect(b, content~, loc~, args_loc~)
 }
 
 ///|
 test "fact" {
-  let env = Environment::base()
-  env.define_vars(number_primitive)
-  let program =
-    #|(+ 1 (* 2 3))
+  run("(+ 1 (* 2 3))", content="7")
+  (
     #|(define (fact x)
     #|   (if (= x 0)
     #|       1 ; base case
     #|       (* x (fact (- x 1))))) ; rec case
-    #|(fact 5)
-  program
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|7
-      #|120
-      #|
-    ),
   )
+  |> run
+  run("(fact 5)", content="120")
 }
 
 ///|
 test "OOP" {
-  let env = Environment::base()
-  env.define_vars(number_primitive + other_primitive)
-  let code0 =
+  (
     #|(define (make-account money)
     #|  (define (take x)
     #|    (set! money (- money x)))
@@ -50,36 +57,21 @@ test "OOP" {
     #|            ('error)))))
     #|(define a (make-account 100))
     #|(define b (make-account 1000))
-  code0 |> run_and_to_string(env) |> inspect(content="")
-  let code1 =
-    #|(a 'look)
-    #|(b 'look)
-    #|((a 'take) 20)
-    #|(a 'look)
-    #|(b 'look)
-    #|((b 'take) 30)
-    #|(a 'look)
-    #|(b 'look)
-  code1
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|100
-      #|1000
-      #|80
-      #|1000
-      #|80
-      #|970
-      #|
-    ),
   )
+  |> run
+  run(" (b 'look)", content="1000")
+  run(" (a 'look)", content="100")
+  run(" ((a 'take) 20)")
+  run(" (a 'look)", content="80")
+  run(" (b 'look)", content="1000")
+  run(" ((b 'take) 30)")
+  run(" (a 'look)", content="80")
+  run(" (b 'look)", content="970")
 }
 
 ///|
 test "sort" {
-  let env = Environment::base()
-  env.define_vars(number_primitive + pair_primitive)
-  let code0 =
+  (
     #|(define (max2 a b)
     #|  (if (> a b) a b))
     #|
@@ -102,19 +94,12 @@ test "sort" {
     #|      '()
     #|      (cons (max ls)
     #|            (sort (remove (max ls) ls)))))
-  let code1 =
+    #|
     #|(define ls1 '(3 5 2 4 1))
-    #|ls1
-    #|(sort ls1)
-  run_and_to_string(code0, env) |> ignore
-  run_and_to_string(code1, env)
-  |> inspect(
-    content=(
-      #|(3 5 2 4 1)
-      #|(5 4 3 2 1)
-      #|
-    ),
   )
+  |> run
+  run("ls1", content="(3 5 2 4 1)")
+  run("(sort ls1)", content="(5 4 3 2 1)")
 }
 
 ///|
@@ -128,11 +113,8 @@ test "proper tail call" {
     (Some(s), i) => continue (s.stack, i + 1)
     (None, i) => i
   }
-  for {
-    match vm.next {
-      Apply => break
-      _ => vm.run_one_step()
-    }
+  while !(vm.next is Apply) {
+    vm.run_one_step()
   }
   let before = stack_length()
   vm.run_one_step()
@@ -142,31 +124,15 @@ test "proper tail call" {
 
 ///|
 test "call/cc 1" {
-  let env = Environment::base()
-  env.define_vars(other_primitive + pair_primitive)
-  let code =
-    #|(define *k* #f)
-    #|(cons 1 (call/cc (lambda (k) (set! *k* k) 2)))
-    #|*k*
-    #|(*k* 3)
-    #|
-  code
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|(1 . 2)
-      #|#<continuation>
-      #|(1 . 3)
-      #|
-    ),
-  )
+  run("(define *k* #f)")
+  run("(cons 1 (call/cc (lambda (k) (set! *k* k) 2)))", content="(1 . 2)")
+  run("*k*", content="#<continuation>")
+  run("(*k* 3)", content="(1 . 3)")
 }
 
 ///|
 test "call/cc 2" {
-  let env = Environment::base()
-  env.define_vars(other_primitive + pair_primitive)
-  let code =
+  (
     #|(define (for-each ls f)
     #|  (if (pair? ls)
     #|      (begin (f (car ls))
@@ -177,64 +143,29 @@ test "call/cc 2" {
     #|    (for-each ls (lambda (y)
     #|      (if (eq? x y) (return #t))))
     #|    #f)))
-    #|
-    #|(find 'b '(a b c))
-    #|(find 'd '(a b c))
-  code
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|#t
-      #|#f
-      #|
-    ),
   )
+  |> run
+  run("(find 'b '(a b c))", content="#t")
+  run("(find 'd '(a b c))", content="#f")
 }
 
 ///|
 test "apply" {
-  let env = Environment::base()
-  env.define_vars(other_primitive + pair_primitive + vector_primitive)
-  let code =
-    #|(apply vector '(1 2 3 4 5))
-  code
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|#(1 2 3 4 5)
-      #|
-    ),
-  )
+  run("(apply vector '(1 2 3 4 5))", content="#(1 2 3 4 5)")
 }
 
 ///|
 test "expand" {
-  let env = Environment::base()
-  env.define_vars(number_primitive)
-  let code =
-    #|(let ((x 1)
-    #|      (y 2))
-    #|  (+ x y))
-    #|
-    #|(and)
-    #|(and #f)
-    #|(and (> 1 0) (> 2 0))
-    #|
+  run("(let ((x 1) (y 2)) (+ x y))", content="3")
+  run("(and)", content="#t")
+  run("(and #f)", content="#f")
+  run("(and (> 1 0) (> 2 0))", content="#t")
+  (
     #|(define (fact x)
     #|   (cond 
     #|     ((= x 0) 1)
     #|     (else (* x (fact (- x 1))))))
-    #|(fact 2)
-  code
-  |> run_and_to_string(env)
-  |> inspect(
-    content=(
-      #|3
-      #|#t
-      #|#f
-      #|#t
-      #|2
-      #|
-    ),
   )
+  |> run
+  run("(fact 2)", content="2")
 }
