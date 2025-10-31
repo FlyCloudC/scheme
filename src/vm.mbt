@@ -13,121 +13,121 @@ pub fn VM::new(
 }
 
 ///|
-fn Frame::save(vm : VM, ret : Inst) -> Frame {
+fn VM::save_frame(vm : VM, ret : Inst) -> Frame {
   { ret, env: vm.env, rib: vm.rib, stack: vm.stack }
 }
 
 ///|
-fn VM::load_frame(self : VM, frame : Frame) -> Unit {
-  self.next = frame.ret
-  self.env = frame.env
-  self.rib = frame.rib
-  self.stack = frame.stack
+fn VM::load_frame(vm : VM, frame : Frame) -> Unit {
+  vm.next = frame.ret
+  vm.env = frame.env
+  vm.rib = frame.rib
+  vm.stack = frame.stack
 }
 
 ///|
-pub fn VM::run_one_step(self : VM) -> Unit raise SchemeException {
-  match self.next {
+pub fn VM::run_one_step(vm : VM) -> Unit raise SchemeException {
+  match vm.next {
     // Const
     Const(v, next) => {
-      self.acc = v
-      self.next = next
+      vm.acc = v
+      vm.next = next
     }
     // Env
     Refer(name, next) => {
-      self.acc = self.env.lookup(name)
-      self.next = next
+      vm.acc = vm.env.lookup(name)
+      vm.next = next
     }
     Set(name, next) => {
-      self.env.set_var(name, self.acc)
-      self.acc = Value::default()
-      self.next = next
+      vm.env.set_var(name, vm.acc)
+      vm.acc = Value::default()
+      vm.next = next
     }
     Define(name, next) => {
-      self.env.define_var(name, self.acc)
-      self.acc = Value::default()
-      self.next = next
+      vm.env.define_var(name, vm.acc)
+      vm.acc = Value::default()
+      vm.next = next
     }
     // Control
     Branch(nt, nf) =>
-      self.next = match self.acc {
+      vm.next = match vm.acc {
         False => nf
         _ => nt
       }
     Return =>
-      match self.stack {
+      match vm.stack {
         None => () // Halt
-        Some(saved_frame) => self.load_frame(saved_frame)
+        Some(saved_frame) => vm.load_frame(saved_frame)
       }
     Close(parm_names, body, name, next) => {
-      self.acc = Closure({ env: self.env, parm_names, body, name })
-      self.next = next
+      vm.acc = Closure({ env: vm.env, parm_names, body, name })
+      vm.next = next
     }
     // Apply
     Save(next, ret) => {
-      self.stack = Some(Frame::save(self, ret))
-      self.next = next
+      vm.stack = Some(vm.save_frame(ret))
+      vm.next = next
     }
     Args(args_length, next) => {
-      self.rib = FixedArray::make(args_length, Value::default())
-      self.next = next
+      vm.rib = FixedArray::make(args_length, Value::default())
+      vm.next = next
     }
     Push(i, next) => {
-      self.rib[i] = self.acc
-      self.next = next
+      vm.rib[i] = vm.acc
+      vm.next = next
     }
-    Apply => self.apply()
+    Apply => vm.apply()
   }
 }
 
 ///|
-fn VM::apply(self : VM) -> Unit raise SchemeException {
-  match self.acc {
+fn VM::apply(vm : VM) -> Unit raise SchemeException {
+  match vm.acc {
     Closure(clo) => {
-      guard self.rib.length() == clo.parm_names.length() else {
+      guard vm.rib.length() == clo.parm_names.length() else {
         raise ArgumentCount
       }
-      self.env = clo.env.extend(clo.parm_names, self.rib, clo)
-      self.next = clo.body
+      vm.env = clo.env.extend(clo.parm_names, vm.rib, clo)
+      vm.next = clo.body
     }
     Primitive(p) =>
       match p {
         Normal(body, ..) => {
-          self.acc = body(self.rib)
-          self.next = Return
+          vm.acc = body(vm.rib)
+          vm.next = Return
         }
         CallCC => {
-          guard self.rib is [f] else { raise ArgumentCount }
-          self.acc = f
-          self.rib[0] = Continuation(self.stack)
-          self.apply()
+          guard vm.rib is [f] else { raise ArgumentCount }
+          vm.acc = f
+          vm.rib[0] = Continuation(vm.stack)
+          vm.apply()
         }
         Apply => {
-          guard self.rib is [f, v] else { raise ArgumentCount }
+          guard vm.rib is [f, v] else { raise ArgumentCount }
           guard v.list_tail_and_length() is (Nil, length) else {
             raise TypeError(1)
           }
-          self.acc = f
-          self.rib = v.unsafe_to_fixedarray(length)
-          self.apply()
+          vm.acc = f
+          vm.rib = v.unsafe_to_fixedarray(length)
+          vm.apply()
         }
       }
     Continuation(stack) => {
-      guard self.rib is [v] else { raise ArgumentCount }
-      self.acc = v
-      self.stack = stack
-      self.next = Return
+      guard vm.rib is [v] else { raise ArgumentCount }
+      vm.acc = v
+      vm.stack = stack
+      vm.next = Return
     }
     _ => raise CallNonProcedure
   }
 }
 
 ///|
-pub fn VM::run_to_halt(self : VM) -> Unit raise SchemeException {
+pub fn VM::run_to_halt(vm : VM) -> Unit raise SchemeException {
   for {
-    match (self.next, self.stack) {
+    match (vm.next, vm.stack) {
       (Return, None) => break
-      _ => self.run_one_step()
+      _ => vm.run_one_step()
     }
   }
 }
