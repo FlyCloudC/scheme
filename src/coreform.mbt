@@ -73,27 +73,22 @@ pub fn Value::to_core_form(self : Value) -> CoreForm raise FromSexpError {
     guard to_core_from_list(r, length - 1) is (bodys, Pair(bodye, _))
     Begin(bodys, bodye.to_core_form())
   }
+  let to_parms = fn(parms_list) raise FromSexpError {
+    let length = proper_list_length(parms_list)
+    let res = FixedArray::make(length, Symbol::default())
+    for i = 0, p = parms_list; p is Pair(l, r); {
+      guard l is Symbol(s) else { raise FromSexpError(self) }
+      for x in res[:i] {
+        guard x != s else { raise FromSexpError(self) }
+      }
+      res[i] = s
+      continue i + 1, r
+    }
+    res
+  }
   let to_lambda = fn(r) raise FromSexpError {
     guard r is Pair(parms_list, bodys) else { raise FromSexpError(self) }
-    let parms = {
-      let length = proper_list_length(parms_list)
-      let res = FixedArray::make(length, Symbol::default())
-      loop (0, parms_list) {
-        (i, Pair(Symbol(s), r)) => {
-          for i in 0..<i {
-            if res[i] == s {
-              raise FromSexpError(self)
-            }
-          }
-          res[i] = s
-          continue (i + 1, r)
-        }
-        (_, Nil) => ()
-        _ => panic()
-      }
-      res
-    }
-    Lambda(parms, to_seq(bodys))
+    Lambda(to_parms(parms_list), to_seq(bodys))
   }
   let to_args = fn(r) raise FromSexpError {
     let length = proper_list_length(r)
@@ -136,8 +131,7 @@ fn to_core_from_list(
 }
 
 ///|
-fn Value::expand(self : Value) -> Value raise FromSexpError {
-  let exp = self
+fn Value::expand(exp : Value) -> Value raise FromSexpError {
   letrec expand_let = fn(body) raise FromSexpError {
     guard body is Pair(nvs, body) else { raise FromSexpError(exp) }
     fn split(nvs) raise FromSexpError {

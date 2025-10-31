@@ -1,18 +1,16 @@
 ///|
 pub fn read(code : StringView) -> Array[(Token, Int, Int)] raise ReadException {
   let tokens = []
-  loop code {
-    [] => ()
-    [c, .. rest] as c_rest =>
-      match c {
-        ' ' | '\n' | '\r' | '\t' => continue rest
-        ';' => continue read_comment(rest)
-        _ => {
-          let (t, rest) = read_next_token(c, rest)
-          tokens.push((t, c_rest.start_offset(), rest.start_offset()))
-          continue rest
-        }
+  for c_rest = code; c_rest is [c, .. rest]; {
+    match c {
+      ' ' | '\n' | '\r' | '\t' => continue rest
+      ';' => continue read_comment(rest)
+      _ => {
+        let (t, rest) = read_next_token(c, rest)
+        tokens.push((t, c_rest.start_offset(), rest.start_offset()))
+        continue rest
       }
+    }
   }
   tokens
 }

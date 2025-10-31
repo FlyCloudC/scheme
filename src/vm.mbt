@@ -124,10 +124,7 @@ fn VM::apply(vm : VM) -> Unit raise SchemeException {
 
 ///|
 pub fn VM::run_to_halt(vm : VM) -> Unit raise SchemeException {
-  for {
-    match (vm.next, vm.stack) {
-      (Return, None) => break
-      _ => vm.run_one_step()
-    }
+  while !((vm.next, vm.stack) is (Return, None)) {
+    vm.run_one_step()
   }
 }

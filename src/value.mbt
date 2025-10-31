@@ -119,9 +119,10 @@ pub fn Value::list(vs : FixedArray[Value]) -> Value {
 
 ///|
 pub fn Value::list_tail_and_length(self : Value) -> (Value, Int) {
-  loop (self, 0) {
-    (Pair(_, r), len) => continue (r, len + 1)
-    (tail, len) => (tail, len)
+  for p = self, len = 0; p is Pair(_, r); {
+    continue r, len + 1
+  } else {
+    (p, len)
   }
 }
 
@@ -131,11 +132,9 @@ pub fn Value::unsafe_to_fixedarray(
   length : Int,
 ) -> FixedArray[Value] {
   let res = FixedArray::make(length, Value::default())
-  loop (0, self) {
-    (i, Pair(l, r)) => {
-      res[i] = l
-      continue (i + 1, r)
-    }
-    _ => res
+  for i = 0, p = self; p is Pair(l, r); {
+    res[i] = l
+    continue i + 1, r
   }
+  res
 }
