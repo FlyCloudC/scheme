@@ -34,7 +34,7 @@ pub fn parse(code : String) -> Array[Value] raise ParseException {
       Rp => to_sexp(res)
       Dot =>
         match next() {
-          Rp => raise MisTokenAfterDot
+          Rp => raise UnexpectedToken(Rp)
           t => {
             let r = parse_value(t)
             match next() {
@@ -94,8 +94,8 @@ test "parse list" {
 ///|
 test "parse dot list" {
   inspect(try? parse("(1 2 . 3 4)"), content="Err(MoreThanOneAfterDot(Int(4)))")
-  inspect(try? parse("(1 2 .)"), content="Err(MisTokenAfterDot)")
-  inspect(try? parse("(1 2 . )"), content="Err(MisTokenAfterDot)")
+  inspect(try? parse("(1 2 .)"), content="Err(UnexpectedToken(Rp))")
+  inspect(try? parse("(1 2 . )"), content="Err(UnexpectedToken(Rp))")
   inspect(parse("(1 2 . 3)"), content="[(1 2 . 3)]")
   inspect(parse("(1 2 .3)"), content="[(1 2 . 3)]")
 }

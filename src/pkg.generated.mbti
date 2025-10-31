@@ -29,7 +29,6 @@ impl Show for FromSexpError
 pub suberror ParseException {
   UnexpectedToken(@tokenizer.Token)
   MoreThanOneAfterDot(@tokenizer.Token)
-  MisTokenAfterDot
   UnexpectedEndOfInput
   ReadException(@tokenizer.ReadException)
 }

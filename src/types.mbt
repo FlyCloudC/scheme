@@ -109,7 +109,6 @@ using @tokenizer {type Token}
 pub suberror ParseException {
   UnexpectedToken(Token)
   MoreThanOneAfterDot(Token)
-  MisTokenAfterDot
   UnexpectedEndOfInput
   ReadException(@tokenizer.ReadException)
 } derive(Show)
