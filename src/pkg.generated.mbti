@@ -16,7 +16,7 @@ let other_primitive : Iter[(@symbol.Symbol, Value)]
 
 let pair_primitive : Iter[(@symbol.Symbol, Value)]
 
-fn parse(String) -> Array[Value] raise ParseException
+fn parse(StringView) -> Array[Value] raise ParseException
 
 let string_primitive : Iter[(@symbol.Symbol, Value)]
 

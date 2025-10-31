@@ -1,69 +1,63 @@
 ///|
-pub fn parse(code : String) -> Array[Value] raise ParseException {
-  let tokens = @tokenizer.read(code).map(x => match x {
-    (token, _, _) => token
-  }) catch {
-    e => raise ReadException(e)
-  }
-  let mut current_pos = 0
-  let next = fn() raise ParseException {
-    current_pos += 1
-    if current_pos < tokens.length() {
-      tokens[current_pos]
-    } else {
-      raise UnexpectedEndOfInput
+pub fn parse(code : StringView) -> Array[Value] raise ParseException {
+  letrec parse_value = fn(rest : ArrayView[Token]) raise ParseException {
+    guard rest is [t, .. rest] else { raise UnexpectedEndOfInput }
+    match t {
+      ST => (True, rest)
+      SF => (False, rest)
+      Lp => parse_list(rest)
+      SLp => parse_vector(rest)
+      Quote => {
+        let (v, rest) = parse_value(rest)
+        (Pair(Value::symbol("quote"), Pair(v, Nil)), rest)
+      }
+      Int(i) => (Int(i), rest)
+      Double(d) => (Double(d), rest)
+      Symbol(s) => (Value::symbol(s), rest)
+      String(s) => (String(s), rest)
+      Dot | Rp => raise UnexpectedToken(t)
     }
   }
-  letrec parse_value = fn(token : Token) raise ParseException {
-    match token {
-      ST => True
-      SF => False
-      Lp => parse_list()
-      SLp => parse_vector()
-      Quote => Pair(Value::symbol("quote"), Pair(parse_value(next()), Nil))
-      Int(i) => Int(i)
-      Double(d) => Double(d)
-      Symbol(s) => Value::symbol(s)
-      String(s) => String(s)
-      Dot | Rp => raise UnexpectedToken(token)
-    }
-  }
-  and parse_list = fn() raise ParseException {
+  and parse_list = fn(rest) raise ParseException {
     let res = []
-    loop next() {
-      Rp => to_sexp(res)
-      Dot =>
-        match next() {
-          Rp => raise UnexpectedToken(Rp)
-          t => {
-            let r = parse_value(t)
-            match next() {
-              Rp => res.rev_fold(init=r, (acc, x) => Pair(x, acc))
-              t => raise MoreThanOneAfterDot(t)
-            }
-          }
+    loop rest {
+      [Rp, .. rest] => (to_sexp(res), rest)
+      [Dot, .. rest] => {
+        let (tail, rest) = parse_value(rest)
+        match rest {
+          [] => raise UnexpectedEndOfInput
+          [Rp, .. rest] =>
+            (res.rev_fold(init=tail, (acc, x) => Pair(x, acc)), rest)
+          [t, ..] => raise MoreThanOneAfterDot(t)
         }
-      t => {
-        res.push(parse_value(t))
-        continue next()
+      }
+      rest => {
+        let (v, rest) = parse_value(rest)
+        res.push(v)
+        continue rest
       }
     }
   }
-  and parse_vector = fn() raise ParseException {
+  and parse_vector = fn(rest) raise ParseException {
     let res = []
-    loop next() {
-      Rp => FixedArray::makei(res.length(), fn(i) { res[i] }) |> Vector
-      t => {
-        res.push(parse_value(t))
-        continue next()
+    loop rest {
+      [Rp, .. rest] => (Vector(FixedArray::from_array(res)), rest)
+      rest => {
+        let (v, rest) = parse_value(rest)
+        res.push(v)
+        continue rest
       }
     }
   }
 
+  let tokens = @tokenizer.read(code).map(x => x.0) catch {
+    e => raise ReadException(e)
+  }
   let res = []
-  while current_pos < tokens.length() {
-    res.push(parse_value(tokens[current_pos]))
-    current_pos += 1
+  for tokens = tokens[:]; tokens is [_, ..]; {
+    let (v, rest) = parse_value(tokens)
+    res.push(v)
+    continue rest
   }
   res
 }
