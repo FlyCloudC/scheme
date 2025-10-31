@@ -1,5 +1,5 @@
 ///|
-typealias @symbol.Symbol
+using @symbol {type Symbol}
 
 ///|
 pub(all) suberror SchemeException {
@@ -103,7 +103,7 @@ pub struct Frame {
 // -----------------------------
 
 ///|
-typealias @tokenizer.Token
+using @tokenizer {type Token}
 
 ///|
 pub suberror ParseException {

@@ -1,7 +1,7 @@
 ///|
 pub fn VM::new(
-  inst~ : Inst = Return,
-  env~ : Environment = Environment::base(),
+  inst? : Inst = Return,
+  env? : Environment = Environment::base(),
 ) -> VM {
   { //
     acc: Value::default(),
@@ -18,7 +18,7 @@ fn Frame::save(vm : VM, ret : Inst) -> Frame {
 }
 
 ///|
-fn load_frame(self : VM, frame : Frame) -> Unit {
+fn VM::load_frame(self : VM, frame : Frame) -> Unit {
   self.next = frame.ret
   self.env = frame.env
   self.rib = frame.rib
@@ -26,7 +26,7 @@ fn load_frame(self : VM, frame : Frame) -> Unit {
 }
 
 ///|
-pub fn run_one_step(self : VM) -> Unit raise SchemeException {
+pub fn VM::run_one_step(self : VM) -> Unit raise SchemeException {
   match self.next {
     // Const
     Const(v, next) => {
@@ -81,7 +81,7 @@ pub fn run_one_step(self : VM) -> Unit raise SchemeException {
 }
 
 ///|
-fn apply(self : VM) -> Unit raise SchemeException {
+fn VM::apply(self : VM) -> Unit raise SchemeException {
   match self.acc {
     Closure(clo) => {
       guard self.rib.length() == clo.parm_names.length() else {
@@ -123,7 +123,7 @@ fn apply(self : VM) -> Unit raise SchemeException {
 }
 
 ///|
-pub fn run_to_halt(self : VM) -> Unit raise SchemeException {
+pub fn VM::run_to_halt(self : VM) -> Unit raise SchemeException {
   for {
     match (self.next, self.stack) {
       (Return, None) => break

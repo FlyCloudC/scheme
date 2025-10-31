@@ -1,4 +1,5 @@
 ///|
+#as_free_fn
 pub fn CoreForm::compile(self : CoreForm) -> Inst {
   fn then(exp, next) {
     match exp {
@@ -46,6 +47,3 @@ pub fn CoreForm::compile(self : CoreForm) -> Inst {
 
   then(self, Return)
 }
-
-///|
-pub fnalias CoreForm::compile

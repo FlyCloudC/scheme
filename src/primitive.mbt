@@ -92,22 +92,22 @@ pub let number_primitive : Iter[(Symbol, Value)] = prim_iter_from_map({
     [_, _] => raise TypeError(0)
     _ => raise ArgumentCount
   },
-  "+": fold_args_i(_, 0, 0, Int::op_add, Double::op_add),
+  "+": fold_args_i(_, 0, 0, Int::add, Double::add),
   "-": args => match args {
     [] => raise ArgumentCount
-    [Int(arg0)] => Int(Int::op_neg(arg0))
-    [Double(arg0)] => Double(Double::op_neg(arg0))
-    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::op_sub, Double::op_sub)
-    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::op_sub)
+    [Int(arg0)] => Int(Int::neg(arg0))
+    [Double(arg0)] => Double(Double::neg(arg0))
+    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::sub, Double::sub)
+    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::sub)
     _ => raise TypeError(0)
   },
-  "*": fold_args_i(_, 0, 1, Int::op_mul, Double::op_mul),
+  "*": fold_args_i(_, 0, 1, Int::mul, Double::mul),
   "/": args => match args {
     [] => raise ArgumentCount
-    [Int(arg0)] => Int(Int::op_div(1, arg0))
-    [Double(arg0)] => Double(Double::op_div(1, arg0))
-    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::op_div, Double::op_div)
-    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::op_div)
+    [Int(arg0)] => Int(Int::div(1, arg0))
+    [Double(arg0)] => Double(Double::div(1, arg0))
+    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::div, Double::div)
+    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::div)
     _ => raise TypeError(0)
   },
 })

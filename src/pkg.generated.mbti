@@ -20,8 +20,6 @@ fn parse(String) -> Array[Value] raise ParseException
 
 let string_primitive : Iter[(@symbol.Symbol, Value)]
 
-fn[Self : ToSexp] to_sexp(Self) -> Value
-
 let vector_primitive : Iter[(@symbol.Symbol, Value)]
 
 // Errors
@@ -67,8 +65,8 @@ pub enum CoreForm {
   Set(@symbol.Symbol, CoreForm)
   Define(@symbol.Symbol, CoreForm)
 }
+#as_free_fn
 fn CoreForm::compile(Self) -> Inst
-fnalias CoreForm::compile
 impl FromSexp for CoreForm
 impl ToSexp for CoreForm
 impl Show for CoreForm
@@ -156,11 +154,13 @@ impl Show for Value
 
 // Traits
 pub(open) trait FromSexp {
+  #as_free_fn
   from_sexp(Value) -> Self raise FromSexpError
 }
 impl FromSexp for Json
 
 pub(open) trait ToSexp {
+  #as_free_fn
   to_sexp(Self) -> Value
 }
 impl ToSexp for Bool

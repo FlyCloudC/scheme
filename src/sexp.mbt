@@ -1,21 +1,17 @@
 ///|
 pub(open) trait ToSexp {
+  #as_free_fn
   to_sexp(Self) -> Value
 }
-
-///|
-pub fnalias ToSexp::to_sexp
 
 ///|
 pub(all) suberror FromSexpError Value derive(Show)
 
 ///|
 pub(open) trait FromSexp {
+  #as_free_fn
   from_sexp(Value) -> Self raise FromSexpError
 }
-
-///|
-fnalias FromSexp::from_sexp
 
 ///|
 pub impl ToSexp for Value with to_sexp(self) {

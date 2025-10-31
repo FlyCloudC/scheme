@@ -22,7 +22,10 @@ pub impl Show for Environment with output(self, logger) {
 }
 
 ///|
-pub fn lookup(self : Environment, name : Symbol) -> Value raise SchemeException {
+pub fn Environment::lookup(
+  self : Environment,
+  name : Symbol,
+) -> Value raise SchemeException {
   match self.binds.get(name) {
     Some(x) => x
     None => self.next.or_error(UndefineVar).lookup(name)
@@ -30,7 +33,7 @@ pub fn lookup(self : Environment, name : Symbol) -> Value raise SchemeException 
 }
 
 ///|
-pub fn set_var(
+pub fn Environment::set_var(
   self : Environment,
   name : Symbol,
   new_value : Value,
@@ -42,12 +45,16 @@ pub fn set_var(
 }
 
 ///|
-pub fn define_var(self : Environment, name : Symbol, new_value : Value) -> Unit {
+pub fn Environment::define_var(
+  self : Environment,
+  name : Symbol,
+  new_value : Value,
+) -> Unit {
   self.binds[name] = new_value
 }
 
 ///|
-pub fn define_vars(
+pub fn Environment::define_vars(
   self : Environment,
   name_value : Iter[(Symbol, Value)],
 ) -> Unit {
@@ -57,7 +64,7 @@ pub fn define_vars(
 }
 
 ///|
-pub fn extend(
+pub fn Environment::extend(
   self : Environment,
   names : FixedArray[Symbol],
   values : FixedArray[Value],
