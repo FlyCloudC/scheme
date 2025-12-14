@@ -10,33 +10,28 @@ Reference:
 
 ## example
 
-```moonbit
-test "example in README" {
-  let env = Environment::base()
-  env.define_vars(number_primitive)
-  let code =
-    #|(define (fact x)
-    #|   (if (= x 0)
-    #|       1                      ; base case
-    #|       (* x (fact (- x 1))))) ; rec case
-    #|(fact 5)
-  let sexp : Array[Value] = parse(code)
-  let program : Array[CoreForm] = sexp.map(Value::to_core_form)
-  let inst : Array[Inst] = program.map(compile)
+```moonbit test
+let env = Environment::base()
+env.define_vars(number_primitive)
+let code =
+  #|(define (fact x)
+  #|   (if (= x 0)
+  #|       1                      ; base case
+  #|       (* x (fact (- x 1))))) ; rec case
+  #|(fact 5)
+let sexp : Array[Value] = parse(code)
+let program : Array[CoreForm] = sexp.map(Value::to_core_form)
+let inst : Array[Inst] = program.map(compile)
 
-  // make VM, load "(define (fact x) ...)" and env
-  let vm = VM::new(inst=inst[0], env~)
+// make VM, load "(define (fact x) ...)" and env
+let vm = VM::new(inst=inst[0], env~)
 
-  // run, add "fact" to env
-  vm.run_to_halt()
-  inspect(
-    vm.env.lookup(@symbol.Symbol::of("fact")),
-    content="#<procedure fact>",
-  )
+// run, add "fact" to env
+vm.run_to_halt()
+inspect(vm.env.lookup(@symbol.Symbol::of("fact")), content="#<procedure fact>")
 
-  // load and run "(fact 5)"
-  vm.next = inst[1]
-  vm.run_to_halt()
-  inspect(vm.acc, content="120")
-}
+// load and run "(fact 5)"
+vm.next = inst[1]
+vm.run_to_halt()
+inspect(vm.acc, content="120")
 ```
