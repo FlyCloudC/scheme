@@ -5,7 +5,9 @@ pub(open) trait ToSexp {
 }
 
 ///|
-pub(all) suberror FromSexpError Value derive(Show)
+pub(all) suberror FromSexpError {
+  FromSexpError(Value)
+} derive(Show)
 
 ///|
 pub(open) trait FromSexp {
@@ -136,7 +138,7 @@ test "json" {
     Pair(Int(1), Pair(Int(2), Nil)),
   ])
   assert_eq(s0, (from_sexp(s0) : Json) |> to_sexp)
-  @json.inspect((from_sexp(s0) : Json), content={
+  json_inspect((from_sexp(s0) : Json), content={
     "type": "vector",
     "value": [
       { "type": "double", "value": 1 },

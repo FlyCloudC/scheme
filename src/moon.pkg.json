@@ -1,7 +1,8 @@
 {
   "import": [
     "FlyCloudC/scheme/symbol",
-    "FlyCloudC/scheme/tokenizer"
+    "FlyCloudC/scheme/tokenizer",
+    "moonbitlang/core/hashmap"
   ],
   "link": {
     "wasm-gc": {

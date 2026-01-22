@@ -2,7 +2,7 @@
 package "FlyCloudC/scheme/tokenizer"
 
 // Values
-fn read(StringView) -> Array[(Token, Int, Int)] raise ReadException
+pub fn read(StringView) -> Array[(Token, Int, Int)] raise ReadException
 
 // Errors
 pub suberror ReadException {
@@ -10,7 +10,7 @@ pub suberror ReadException {
   InvalidStringEscaping(StringView)
   InvalidAfterSharp(StringView)
 }
-impl Show for ReadException
+pub impl Show for ReadException
 
 // Types and methods
 pub(all) enum Token {
@@ -26,8 +26,8 @@ pub(all) enum Token {
   Symbol(String)
   String(String)
 }
-impl Eq for Token
-impl Show for Token
+pub impl Eq for Token
+pub impl Show for Token
 
 // Type aliases
 

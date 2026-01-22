@@ -7,11 +7,11 @@ package "FlyCloudC/scheme/symbol"
 
 // Types and methods
 type Symbol
-fn Symbol::of(String) -> Self
-impl Default for Symbol
-impl Eq for Symbol
-impl Hash for Symbol
-impl Show for Symbol
+pub fn Symbol::of(String) -> Self
+pub impl Default for Symbol
+pub impl Eq for Symbol
+pub impl Hash for Symbol
+pub impl Show for Symbol
 
 // Type aliases
 

@@ -1,30 +1,32 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/scheme"
 
-import(
-  "FlyCloudC/scheme/symbol"
-  "FlyCloudC/scheme/tokenizer"
-  "moonbitlang/core/hashmap"
-)
+import {
+  "FlyCloudC/scheme/symbol",
+  "FlyCloudC/scheme/tokenizer",
+  "moonbitlang/core/hashmap",
+}
 
 // Values
-let all_base_primitive : Iter[(@symbol.Symbol, Value)]
+pub let all_base_primitive : Iter[(@symbol.Symbol, Value)]
 
-let number_primitive : Iter[(@symbol.Symbol, Value)]
+pub let number_primitive : Iter[(@symbol.Symbol, Value)]
 
-let other_primitive : Iter[(@symbol.Symbol, Value)]
+pub let other_primitive : Iter[(@symbol.Symbol, Value)]
 
-let pair_primitive : Iter[(@symbol.Symbol, Value)]
+pub let pair_primitive : Iter[(@symbol.Symbol, Value)]
 
-fn parse(StringView) -> Array[Value] raise ParseException
+pub fn parse(StringView) -> Array[Value] raise ParseException
 
-let string_primitive : Iter[(@symbol.Symbol, Value)]
+pub let string_primitive : Iter[(@symbol.Symbol, Value)]
 
-let vector_primitive : Iter[(@symbol.Symbol, Value)]
+pub let vector_primitive : Iter[(@symbol.Symbol, Value)]
 
 // Errors
-pub(all) suberror FromSexpError Value
-impl Show for FromSexpError
+pub(all) suberror FromSexpError {
+  FromSexpError(Value)
+}
+pub impl Show for FromSexpError
 
 pub suberror ParseException {
   UnexpectedToken(@tokenizer.Token)
@@ -32,7 +34,7 @@ pub suberror ParseException {
   UnexpectedEndOfInput
   ReadException(@tokenizer.ReadException)
 }
-impl Show for ParseException
+pub impl Show for ParseException
 
 pub(all) suberror SchemeException {
   UndefineVar
@@ -42,7 +44,7 @@ pub(all) suberror SchemeException {
   InvalidArgument(Int)
   DevideZero
 }
-impl Show for SchemeException
+pub impl Show for SchemeException
 
 // Types and methods
 pub struct Closure {
@@ -51,7 +53,7 @@ pub struct Closure {
   body : Inst
   name : @symbol.Symbol?
 }
-impl Show for Closure
+pub impl Show for Closure
 
 pub enum CoreForm {
   SelfEval(Value)
@@ -65,23 +67,23 @@ pub enum CoreForm {
   Define(@symbol.Symbol, CoreForm)
 }
 #as_free_fn
-fn CoreForm::compile(Self) -> Inst
-impl FromSexp for CoreForm
-impl ToSexp for CoreForm
-impl Show for CoreForm
+pub fn CoreForm::compile(Self) -> Inst
+pub impl FromSexp for CoreForm
+pub impl ToSexp for CoreForm
+pub impl Show for CoreForm
 
 pub(all) struct Environment {
   binds : @hashmap.HashMap[@symbol.Symbol, Value]
   next : Environment?
   closure : Closure?
 }
-fn Environment::base() -> Self
-fn Environment::define_var(Self, @symbol.Symbol, Value) -> Unit
-fn Environment::define_vars(Self, Iter[(@symbol.Symbol, Value)]) -> Unit
-fn Environment::extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
-fn Environment::lookup(Self, @symbol.Symbol) -> Value raise SchemeException
-fn Environment::set_var(Self, @symbol.Symbol, Value) -> Unit raise SchemeException
-impl Show for Environment
+pub fn Environment::base() -> Self
+pub fn Environment::define_var(Self, @symbol.Symbol, Value) -> Unit
+pub fn Environment::define_vars(Self, Iter[(@symbol.Symbol, Value)]) -> Unit
+pub fn Environment::extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
+pub fn Environment::lookup(Self, @symbol.Symbol) -> Value raise SchemeException
+pub fn Environment::set_var(Self, @symbol.Symbol, Value) -> Unit raise SchemeException
+pub impl Show for Environment
 
 pub struct Frame {
   ret : Inst
@@ -109,8 +111,8 @@ pub(all) enum Primitive {
   CallCC
   Apply
 }
-fn Primitive::name(Self) -> @symbol.Symbol
-impl Show for Primitive
+pub fn Primitive::name(Self) -> @symbol.Symbol
+pub impl Show for Primitive
 
 pub(all) struct VM {
   mut acc : Value
@@ -119,9 +121,9 @@ pub(all) struct VM {
   mut rib : FixedArray[Value]
   mut stack : Frame?
 }
-fn VM::new(inst? : Inst, env? : Environment) -> Self
-fn VM::run_one_step(Self) -> Unit raise SchemeException
-fn VM::run_to_halt(Self) -> Unit raise SchemeException
+pub fn VM::new(inst? : Inst, env? : Environment) -> Self
+pub fn VM::run_one_step(Self) -> Unit raise SchemeException
+pub fn VM::run_to_halt(Self) -> Unit raise SchemeException
 
 pub(all) enum Value {
   Nil
@@ -137,17 +139,17 @@ pub(all) enum Value {
   Closure(Closure)
   Continuation(Frame?)
 }
-fn Value::bool(Bool) -> Self
-fn Value::eq(Self, Self) -> Bool
-fn Value::list(FixedArray[Self]) -> Self
-fn Value::list_tail_and_length(Self) -> (Self, Int)
-fn Value::symbol(String) -> Self
-fn Value::to_core_form(Self) -> CoreForm raise FromSexpError
-fn Value::unsafe_to_fixedarray(Self, Int) -> FixedArray[Self]
-impl ToSexp for Value
-impl Default for Value
-impl Eq for Value
-impl Show for Value
+pub fn Value::bool(Bool) -> Self
+pub fn Value::eq(Self, Self) -> Bool
+pub fn Value::list(FixedArray[Self]) -> Self
+pub fn Value::list_tail_and_length(Self) -> (Self, Int)
+pub fn Value::symbol(String) -> Self
+pub fn Value::to_core_form(Self) -> CoreForm raise FromSexpError
+pub fn Value::unsafe_to_fixedarray(Self, Int) -> FixedArray[Self]
+pub impl ToSexp for Value
+pub impl Default for Value
+pub impl Eq for Value
+pub impl Show for Value
 
 // Type aliases
 
@@ -156,20 +158,20 @@ pub(open) trait FromSexp {
   #as_free_fn
   from_sexp(Value) -> Self raise FromSexpError
 }
-impl FromSexp for Json
+pub impl FromSexp for Json
 
 pub(open) trait ToSexp {
   #as_free_fn
   to_sexp(Self) -> Value
 }
-impl ToSexp for Bool
-impl ToSexp for Int
-impl ToSexp for Double
-impl ToSexp for String
-impl[A : ToSexp] ToSexp for FixedArray[A]
-impl ToSexp for @symbol.Symbol
-impl[A : ToSexp] ToSexp for Array[A]
-impl[A : ToSexp, B : ToSexp] ToSexp for Iter2[A, B]
-impl ToSexp for Json
-impl[A : ToSexp, B : ToSexp] ToSexp for (A, B)
+pub impl ToSexp for Bool
+pub impl ToSexp for Int
+pub impl ToSexp for Double
+pub impl ToSexp for String
+pub impl[A : ToSexp] ToSexp for FixedArray[A]
+pub impl ToSexp for @symbol.Symbol
+pub impl[A : ToSexp] ToSexp for Array[A]
+pub impl[A : ToSexp, B : ToSexp] ToSexp for Iter2[A, B]
+pub impl ToSexp for Json
+pub impl[A : ToSexp, B : ToSexp] ToSexp for (A, B)
 
