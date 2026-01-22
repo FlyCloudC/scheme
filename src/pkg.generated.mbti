@@ -8,19 +8,19 @@ import {
 }
 
 // Values
-pub let all_base_primitive : Iter[(@symbol.Symbol, Value)]
+pub let all_base_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
-pub let number_primitive : Iter[(@symbol.Symbol, Value)]
+pub let number_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
-pub let other_primitive : Iter[(@symbol.Symbol, Value)]
+pub let other_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
-pub let pair_primitive : Iter[(@symbol.Symbol, Value)]
+pub let pair_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
 pub fn parse(StringView) -> Array[Value] raise ParseException
 
-pub let string_primitive : Iter[(@symbol.Symbol, Value)]
+pub let string_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
-pub let vector_primitive : Iter[(@symbol.Symbol, Value)]
+pub let vector_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
 // Errors
 pub(all) suberror FromSexpError {
@@ -79,7 +79,7 @@ pub(all) struct Environment {
 }
 pub fn Environment::base() -> Self
 pub fn Environment::define_var(Self, @symbol.Symbol, Value) -> Unit
-pub fn Environment::define_vars(Self, Iter[(@symbol.Symbol, Value)]) -> Unit
+pub fn Environment::define_vars(Self, ReadOnlyArray[(@symbol.Symbol, Value)]) -> Unit
 pub fn Environment::extend(Self, FixedArray[@symbol.Symbol], FixedArray[Value], Closure) -> Self
 pub fn Environment::lookup(Self, @symbol.Symbol) -> Value raise SchemeException
 pub fn Environment::set_var(Self, @symbol.Symbol, Value) -> Unit raise SchemeException

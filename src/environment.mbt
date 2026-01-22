@@ -56,7 +56,7 @@ pub fn Environment::define_var(
 ///|
 pub fn Environment::define_vars(
   self : Environment,
-  name_value : Iter[(Symbol, Value)],
+  name_value : ReadOnlyArray[(Symbol, Value)],
 ) -> Unit {
   for nv in name_value {
     self.binds[nv.0] = nv.1
