@@ -160,6 +160,11 @@ test "expand" {
   run("(and)", content="#t")
   run("(and #f)", content="#f")
   run("(and (> 1 0) (> 2 0))", content="#t")
+  run("(or)", content="#f")
+  run("(or 1)", content="1")
+  run("(or 1 2)", content="1")
+  run("(or #f 2)", content="2")
+  run("(let ((x (and 1 2)) (y (and 3 4))) (and x y))", content="4")
   (
     #|(define (fact x)
     #|   (cond 
