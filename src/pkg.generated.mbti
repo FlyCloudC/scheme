@@ -10,6 +10,8 @@ import {
 // Values
 pub let all_base_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
+pub let expand_table : @hashmap.HashMap[@symbol.Symbol, (Value) -> Value raise SyntaxError]
+
 pub let number_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 
 pub let other_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
@@ -45,6 +47,8 @@ pub(all) suberror SchemeException {
   DevideZero
 }
 pub impl Show for SchemeException
+
+type SyntaxError
 
 // Types and methods
 pub struct Closure {

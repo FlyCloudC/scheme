@@ -94,7 +94,10 @@ pub fn Value::to_core_form(self : Value) -> CoreForm raise FromSexpError {
     let length = proper_list_length(r)
     to_core_from_list(r, length).0
   }
-  match self.expand() {
+  let expand_self = self.expand() catch {
+    SyntaxError => raise FromSexpError(self)
+  }
+  match expand_self {
     Symbol(s) => Var(s)
     Pair(l, r) =>
       match l {
@@ -131,48 +134,58 @@ fn to_core_from_list(
 }
 
 ///|
-fn Value::expand(exp : Value) -> Value raise FromSexpError {
-  letrec expand_let = fn(body) raise FromSexpError {
-    guard body is Pair(nvs, body) else { raise FromSexpError(exp) }
-    fn split(nvs) raise FromSexpError {
-      match nvs {
-        Pair(Pair(n, Pair(v, Nil)), r) => {
-          let (ns, vs) = split(r)
-          (Pair(n, ns), Pair(v, vs))
-        }
-        Nil => (Nil, Nil)
-        _ => raise FromSexpError(exp)
-      }
-    }
+suberror SyntaxError {
+  SyntaxError
+}
 
-    let (names, values) = split(nvs)
-    let lam = Pair(Value::symbol("lambda"), Pair(names, body))
-    Pair(lam, values)
-  }
-  and expand_cond = fn(body) raise FromSexpError {
-    fn expand_clauses(r) raise FromSexpError {
-      match r {
-        Pair(Pair(pred, Pair(texp, Nil)), r) => {
-          let e = if pred is Symbol(s) && s.to_string() == "else" {
-            guard r is Nil else { raise FromSexpError(exp) }
-            texp
-          } else {
-            Pair(Value::symbol("if"), Pair(pred, Pair(texp, expand_clauses(r))))
+///|
+pub let expand_table : @hashmap.HashMap[
+  Symbol,
+  (Value) -> Value raise SyntaxError,
+] = @hashmap.from_array([
+  (
+    Symbol::of("let"),
+    body => {
+      guard body is Pair(nvs, body) else { raise SyntaxError }
+      fn split(nvs) raise SyntaxError {
+        match nvs {
+          Pair(Pair(n, Pair(v, Nil)), r) => {
+            let (ns, vs) = split(r)
+            (Pair(n, ns), Pair(v, vs))
           }
-          Pair(e, Nil)
+          Nil => (Nil, Nil)
+          _ => raise SyntaxError
         }
-        Nil => Nil
-        _ => raise FromSexpError(exp)
       }
-    }
 
-    match expand_clauses(body) {
-      Pair(e, Nil) => e
-      _ => raise FromSexpError(exp)
-    }
-  }
-  and expand_and = fn(body) raise FromSexpError {
-    match body {
+      let (names, values) = split(nvs)
+      let lam = Pair(Value::symbol("lambda"), Pair(names, body))
+      Pair(lam, values)
+    },
+  ),
+  (
+    Symbol::of("cond"),
+    {
+      fn expand_clauses(r) raise SyntaxError {
+        match r {
+          Pair(Pair(Symbol(s), Pair(texp, Nil)), r) if s == Symbol::of("else") => {
+            guard r is Nil else { raise SyntaxError }
+            texp
+          }
+          Pair(Pair(pred, Pair(texp, Nil)), Nil) =>
+            Value::list([Value::symbol("if"), pred, texp])
+          Pair(Pair(pred, Pair(texp, Nil)), r) =>
+            Value::list([Value::symbol("if"), pred, texp, expand_clauses(r)])
+          _ => raise SyntaxError
+        }
+      }
+
+      expand_clauses
+    },
+  ),
+  (
+    Symbol::of("and"),
+    body => match body {
       Nil => True
       Pair(l, Nil) => l
       Pair(l, r) =>
@@ -182,11 +195,12 @@ fn Value::expand(exp : Value) -> Value raise FromSexpError {
           Pair(Value::symbol("and"), r),
           False,
         ])
-      _ => raise FromSexpError(exp)
-    }
-  }
-  and expand_or = fn(body) raise FromSexpError {
-    match body {
+      _ => raise SyntaxError
+    },
+  ),
+  (
+    Symbol::of("or"),
+    body => match body {
       Nil => False
       Pair(l, Nil) => l
       Pair(l, r) => {
@@ -202,19 +216,16 @@ fn Value::expand(exp : Value) -> Value raise FromSexpError {
           ]),
         ])
       }
-      _ => raise FromSexpError(exp)
-    }
-  }
+      _ => raise SyntaxError
+    },
+  ),
+])
 
-  loop exp {
-    Pair(Symbol(s), body) as e =>
-      match s.to_string() {
-        "let" => continue expand_let(body)
-        "cond" => continue expand_cond(body)
-        "and" => continue expand_and(body)
-        "or" => continue expand_or(body)
-        _ => e
-      }
-    e => e
+///|
+fn Value::expand(exp : Value) -> Value raise SyntaxError {
+  if exp is Pair(Symbol(s), body) && expand_table.get(s) is Some(expander) {
+    expander(body).expand()
+  } else {
+    exp
   }
 }
