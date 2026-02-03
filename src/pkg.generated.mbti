@@ -37,7 +37,7 @@ pub suberror ParseException {
 pub impl Show for ParseException
 
 pub(all) suberror SchemeException {
-  UndefineVar
+  UndefineVar(@symbol.Symbol)
   CallNonProcedure
   ArgumentCount
   TypeError(Int)

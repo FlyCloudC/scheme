@@ -28,7 +28,11 @@ pub fn Environment::lookup(
 ) -> Value raise SchemeException {
   match self.binds.get(name) {
     Some(x) => x
-    None => self.next.unwrap_or_error(UndefineVar).lookup(name)
+    None =>
+      match self.next {
+        Some(next) => next.lookup(name)
+        None => raise UndefineVar(name)
+      }
   }
 }
 
@@ -40,7 +44,11 @@ pub fn Environment::set_var(
 ) -> Unit raise SchemeException {
   match self.binds.get(name) {
     Some(_) => self.binds[name] = new_value
-    None => self.next.unwrap_or_error(UndefineVar).set_var(name, new_value)
+    None =>
+      match self.next {
+        Some(next) => next.set_var(name, new_value)
+        None => raise UndefineVar(name)
+      }
   }
 }
 

@@ -3,7 +3,7 @@ using @symbol {type Symbol}
 
 ///|
 pub(all) suberror SchemeException {
-  UndefineVar
+  UndefineVar(Symbol)
   CallNonProcedure
   ArgumentCount
   TypeError(Int)
