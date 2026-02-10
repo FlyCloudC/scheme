@@ -1,5 +1,5 @@
 ///|
-struct Symbol(Int) derive(Eq, Hash)
+struct Symbol(Int) derive(Eq)
 
 ///|
 let map_str_to_sym : @hashmap.HashMap[String, Symbol] = @hashmap.new(
@@ -56,6 +56,16 @@ let default_symbol : Symbol = Symbol::of("default-symbol")
 ///|
 pub impl Default for Symbol with default() {
   default_symbol
+}
+
+///|
+pub impl Hash for Symbol with hash_combine(self, hasher) {
+  hasher.combine_int(self.0)
+}
+
+///|
+pub impl Hash for Symbol with hash(self) {
+  self.0
 }
 
 ///|
