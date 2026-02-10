@@ -1,0 +1,9 @@
+import {
+  "FlyCloudC/scheme/symbol",
+  "FlyCloudC/scheme/tokenizer",
+  "moonbitlang/core/hashmap",
+}
+
+options(
+  link: { "wasm-gc": { "use-js-builtin-string": true } },
+)

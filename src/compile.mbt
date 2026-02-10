@@ -30,10 +30,9 @@ pub fn CoreForm::compile(self : CoreForm) -> Inst {
         let fi = then(f, Apply)
         let argsi = Args(
           length,
-          args.rev_foldi(init=fi, (i, acc, x) => then(
-            x,
-            Push(length - 1 - i, acc),
-          )),
+          args.rev_foldi(init=fi, (i, acc, x) => {
+            then(x, Push(length - 1 - i, acc))
+          }),
         )
         match next {
           Return => argsi

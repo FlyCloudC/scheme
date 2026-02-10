@@ -128,7 +128,7 @@ fn to_core_from_list(
     guard r is Pair(l, r)
     dist[i] = l.to_core_form()
     continue i + 1, r
-  } else {
+  } nobreak {
     (dist, r)
   }
 }
@@ -185,38 +185,42 @@ pub let expand_table : @hashmap.HashMap[
   ),
   (
     Symbol::of("and"),
-    body => match body {
-      Nil => True
-      Pair(l, Nil) => l
-      Pair(l, r) =>
-        Value::list([
-          Value::symbol("if"),
-          l,
-          Pair(Value::symbol("and"), r),
-          False,
-        ])
-      _ => raise SyntaxError
+    body => {
+      match body {
+        Nil => True
+        Pair(l, Nil) => l
+        Pair(l, r) =>
+          Value::list([
+            Value::symbol("if"),
+            l,
+            Pair(Value::symbol("and"), r),
+            False,
+          ])
+        _ => raise SyntaxError
+      }
     },
   ),
   (
     Symbol::of("or"),
-    body => match body {
-      Nil => False
-      Pair(l, Nil) => l
-      Pair(l, r) => {
-        let var_l = Symbol(Symbol::of("$GEN_SYM"))
-        Value::list([
-          Value::symbol("let"),
-          Value::list([Value::list([var_l, l])]),
+    body => {
+      match body {
+        Nil => False
+        Pair(l, Nil) => l
+        Pair(l, r) => {
+          let var_l = Symbol(Symbol::of("$GEN_SYM"))
           Value::list([
-            Value::symbol("if"),
-            var_l,
-            var_l,
-            Pair(Value::symbol("or"), r),
-          ]),
-        ])
+            Value::symbol("let"),
+            Value::list([Value::list([var_l, l])]),
+            Value::list([
+              Value::symbol("if"),
+              var_l,
+              var_l,
+              Pair(Value::symbol("or"), r),
+            ]),
+          ])
+        }
+        _ => raise SyntaxError
       }
-      _ => raise SyntaxError
     },
   ),
 ])

@@ -12,7 +12,7 @@ pub impl Show for Primitive with output(self, logger) {
   logger
   ..write_string("#<procedure ")
   ..write_object(self.name())
-  ..write_char('>')
+  .write_char('>')
 }
 
 ///|
@@ -20,7 +20,7 @@ pub impl Show for Closure with output(self, logger) {
   match self.name {
     None => logger.write_string("#<procedure>")
     Some(name) =>
-      logger..write_string("#<procedure ")..write_object(name)..write_char('>')
+      logger..write_string("#<procedure ")..write_object(name).write_char('>')
   }
 }
 
@@ -83,7 +83,7 @@ pub impl Show for Value with output(self, logger) {
           logger..write_char(' ').write_object(l)
           continue r
         }
-        v => logger..write_string(" . ")..write_object(v)..write_char(')')
+        v => logger..write_string(" . ")..write_object(v).write_char(')')
       }
     }
     Int(i) => logger.write_object(i)
@@ -121,7 +121,7 @@ pub fn Value::list(vs : FixedArray[Value]) -> Value {
 pub fn Value::list_tail_and_length(self : Value) -> (Value, Int) {
   for p = self, len = 0; p is Pair(_, r); {
     continue r, len + 1
-  } else {
+  } nobreak {
     (p, len)
   }
 }

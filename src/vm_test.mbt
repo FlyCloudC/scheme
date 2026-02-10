@@ -109,9 +109,11 @@ test "proper tail call" {
     #| (lambda (f) (f f)))
   let inst_def_f = parse(code)[0].to_core_form().compile()
   let vm = VM::new(inst=inst_def_f, env=Environment::base())
-  let stack_length = () => loop (vm.stack, 0) {
-    (Some(s), i) => continue (s.stack, i + 1)
-    (None, i) => i
+  let stack_length = () => {
+    loop (vm.stack, 0) {
+      (Some(s), i) => continue (s.stack, i + 1)
+      (None, i) => i
+    }
   }
   while !(vm.next is Apply) {
     vm.run_one_step()

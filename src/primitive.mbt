@@ -60,55 +60,67 @@ fn fold_args_i(
 /// 
 /// `=`, `>`, `<`
 pub let number_primitive : ReadOnlyArray[(Symbol, Value)] = [
-  normal("number?", args => match args {
-    [Int(_) | Double(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("number?", args => {
+    match args {
+      [Int(_) | Double(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("=", args => match args {
-    [Int(a), Int(b)] => Value::bool(a == b)
-    [Double(a), Double(b)] => Value::bool(a == b)
-    [Double(a), Int(b)] => Value::bool(a == b.to_double())
-    [Int(a), Double(b)] => Value::bool(a.to_double() == b)
-    [Int(_) | Double(_), _] => raise TypeError(1)
-    [_, _] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("=", args => {
+    match args {
+      [Int(a), Int(b)] => Value::bool(a == b)
+      [Double(a), Double(b)] => Value::bool(a == b)
+      [Double(a), Int(b)] => Value::bool(a == b.to_double())
+      [Int(a), Double(b)] => Value::bool(a.to_double() == b)
+      [Int(_) | Double(_), _] => raise TypeError(1)
+      [_, _] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal(">", args => match args {
-    [Int(a), Int(b)] => Value::bool(a > b)
-    [Double(a), Double(b)] => Value::bool(a > b)
-    [Double(a), Int(b)] => Value::bool(a > b.to_double())
-    [Int(a), Double(b)] => Value::bool(a.to_double() > b)
-    [Int(_) | Double(_), _] => raise TypeError(1)
-    [_, _] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal(">", args => {
+    match args {
+      [Int(a), Int(b)] => Value::bool(a > b)
+      [Double(a), Double(b)] => Value::bool(a > b)
+      [Double(a), Int(b)] => Value::bool(a > b.to_double())
+      [Int(a), Double(b)] => Value::bool(a.to_double() > b)
+      [Int(_) | Double(_), _] => raise TypeError(1)
+      [_, _] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("<", args => match args {
-    [Int(a), Int(b)] => Value::bool(a < b)
-    [Double(a), Double(b)] => Value::bool(a < b)
-    [Double(a), Int(b)] => Value::bool(a < b.to_double())
-    [Int(a), Double(b)] => Value::bool(a.to_double() < b)
-    [Int(_) | Double(_), _] => raise TypeError(1)
-    [_, _] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("<", args => {
+    match args {
+      [Int(a), Int(b)] => Value::bool(a < b)
+      [Double(a), Double(b)] => Value::bool(a < b)
+      [Double(a), Int(b)] => Value::bool(a < b.to_double())
+      [Int(a), Double(b)] => Value::bool(a.to_double() < b)
+      [Int(_) | Double(_), _] => raise TypeError(1)
+      [_, _] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("+", fold_args_i(_, 0, 0, Int::add, Double::add)),
-  normal("-", args => match args {
-    [] => raise ArgumentCount
-    [Int(arg0)] => Int(Int::neg(arg0))
-    [Double(arg0)] => Double(Double::neg(arg0))
-    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::sub, Double::sub)
-    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::sub)
-    _ => raise TypeError(0)
+  normal("+", args => fold_args_i(args, 0, 0, Int::add, Double::add)),
+  normal("-", args => {
+    match args {
+      [] => raise ArgumentCount
+      [Int(arg0)] => Int(Int::neg(arg0))
+      [Double(arg0)] => Double(Double::neg(arg0))
+      [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::sub, Double::sub)
+      [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::sub)
+      _ => raise TypeError(0)
+    }
   }),
-  normal("*", fold_args_i(_, 0, 1, Int::mul, Double::mul)),
-  normal("/", args => match args {
-    [] => raise ArgumentCount
-    [Int(arg0)] => Int(Int::div(1, arg0))
-    [Double(arg0)] => Double(Double::div(1, arg0))
-    [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::div, Double::div)
-    [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::div)
-    _ => raise TypeError(0)
+  normal("*", args => fold_args_i(args, 0, 1, Int::mul, Double::mul)),
+  normal("/", args => {
+    match args {
+      [] => raise ArgumentCount
+      [Int(arg0)] => Int(Int::div(1, arg0))
+      [Double(arg0)] => Double(Double::div(1, arg0))
+      [Int(arg0), ..] => fold_args_i(args, 1, arg0, Int::div, Double::div)
+      [Double(arg0), ..] => fold_args_d(args, 1, arg0, Double::div)
+      _ => raise TypeError(0)
+    }
   }),
 ]
 
@@ -117,31 +129,41 @@ pub let number_primitive : ReadOnlyArray[(Symbol, Value)] = [
 /// 
 /// `null?`, `pair?`
 pub let pair_primitive : ReadOnlyArray[(Symbol, Value)] = [
-  normal("car", args => match args {
-    [Pair(l, _)] => l
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("car", args => {
+    match args {
+      [Pair(l, _)] => l
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("cdr", args => match args {
-    [Pair(_, r)] => r
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("cdr", args => {
+    match args {
+      [Pair(_, r)] => r
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("null?", args => match args {
-    [Nil] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("null?", args => {
+    match args {
+      [Nil] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("pair?", args => match args {
-    [Pair(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("pair?", args => {
+    match args {
+      [Pair(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("cons", args => match args {
-    [l, r] => Pair(l, r)
-    _ => raise ArgumentCount
+  normal("cons", args => {
+    match args {
+      [l, r] => Pair(l, r)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("list", Value::list(_)),
+  normal("list", args => Value::list(args)),
 ]
 
 ///|
@@ -149,30 +171,40 @@ pub let pair_primitive : ReadOnlyArray[(Symbol, Value)] = [
 /// 
 /// `symbol->string`, `number->string`, `value->string`
 pub let string_primitive : ReadOnlyArray[(Symbol, Value)] = [
-  normal("string?", args => match args {
-    [String(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("string?", args => {
+    match args {
+      [String(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("string->symbol", args => match args {
-    [String(s)] => Value::symbol(s)
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("string->symbol", args => {
+    match args {
+      [String(s)] => Value::symbol(s)
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("symbol->string", args => match args {
-    [Symbol(x)] => String(x.to_string())
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("symbol->string", args => {
+    match args {
+      [Symbol(x)] => String(x.to_string())
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("number->string", args => match args {
-    [Int(x)] => String(x.to_string())
-    [Double(x)] => String(x.to_string())
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
+  normal("number->string", args => {
+    match args {
+      [Int(x)] => String(x.to_string())
+      [Double(x)] => String(x.to_string())
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
+    }
   }),
-  normal("value->string", args => match args {
-    [v] => String(v.to_string())
-    _ => raise ArgumentCount
+  normal("value->string", args => {
+    match args {
+      [v] => String(v.to_string())
+      _ => raise ArgumentCount
+    }
   }),
   normal("string-append", args => {
     let b = StringBuilder::new()
@@ -189,48 +221,58 @@ pub let string_primitive : ReadOnlyArray[(Symbol, Value)] = [
 /// 
 /// `vector-ref`, `vector-set!`
 pub let vector_primitive : ReadOnlyArray[(Symbol, Value)] = [
-  normal("vector?", args => match args {
-    [Vector(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
-  }),
-  normal("vector-length", args => match args {
-    [Vector(v)] => Int(v.length())
-    [_] => raise TypeError(0)
-    _ => raise ArgumentCount
-  }),
-  normal("vector-ref", args => match args {
-    [Vector(v), Int(i)] => {
-      guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
-      v.unsafe_get(i)
+  normal("vector?", args => {
+    match args {
+      [Vector(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
     }
-    [Vector(_), _] => raise InvalidArgument(1)
-    [_, _] => raise TypeError(0)
-    _ => raise ArgumentCount
   }),
-  normal("vector-set!", args => match args {
-    [Vector(v), Int(i), x] => {
-      guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
-      v[i] = x
-      Value::default()
+  normal("vector-length", args => {
+    match args {
+      [Vector(v)] => Int(v.length())
+      [_] => raise TypeError(0)
+      _ => raise ArgumentCount
     }
-    [Vector(_), _, _] => raise InvalidArgument(1)
-    [_, _, _] => raise TypeError(0)
-    _ => raise ArgumentCount
   }),
-  normal("vector", Vector(_)),
-  normal("make-vector", args => match args {
-    [n] => {
-      guard n is Int(n) else { raise TypeError(0) }
-      guard n >= 0 else { raise InvalidArgument(0) }
-      Vector(FixedArray::make(n, Int(0)))
+  normal("vector-ref", args => {
+    match args {
+      [Vector(v), Int(i)] => {
+        guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
+        v.unsafe_get(i)
+      }
+      [Vector(_), _] => raise InvalidArgument(1)
+      [_, _] => raise TypeError(0)
+      _ => raise ArgumentCount
     }
-    [n, init] => {
-      guard n is Int(n) else { raise TypeError(0) }
-      guard n >= 0 else { raise InvalidArgument(0) }
-      Vector(FixedArray::make(n, init))
+  }),
+  normal("vector-set!", args => {
+    match args {
+      [Vector(v), Int(i), x] => {
+        guard 0 <= i && i < v.length() else { raise InvalidArgument(1) }
+        v[i] = x
+        Value::default()
+      }
+      [Vector(_), _, _] => raise InvalidArgument(1)
+      [_, _, _] => raise TypeError(0)
+      _ => raise ArgumentCount
     }
-    _ => raise ArgumentCount
+  }),
+  normal("vector", args => Vector(args)),
+  normal("make-vector", args => {
+    match args {
+      [n] => {
+        guard n is Int(n) else { raise TypeError(0) }
+        guard n >= 0 else { raise InvalidArgument(0) }
+        Vector(FixedArray::make(n, Int(0)))
+      }
+      [n, init] => {
+        guard n is Int(n) else { raise TypeError(0) }
+        guard n >= 0 else { raise InvalidArgument(0) }
+        Vector(FixedArray::make(n, init))
+      }
+      _ => raise ArgumentCount
+    }
   }),
 ]
 
@@ -239,19 +281,25 @@ pub let vector_primitive : ReadOnlyArray[(Symbol, Value)] = [
 /// 
 /// `call/cc`, `apply`
 pub let other_primitive : ReadOnlyArray[(Symbol, Value)] = [
-  normal("symbol?", args => match args {
-    [Symbol(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("symbol?", args => {
+    match args {
+      [Symbol(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("procedure?", args => match args {
-    [Primitive(_) | Closure(_) | Continuation(_)] => True
-    [_] => False
-    _ => raise ArgumentCount
+  normal("procedure?", args => {
+    match args {
+      [Primitive(_) | Closure(_) | Continuation(_)] => True
+      [_] => False
+      _ => raise ArgumentCount
+    }
   }),
-  normal("eq?", args => match args {
-    [a, b] => Value::bool(a.eq(b))
-    _ => raise ArgumentCount
+  normal("eq?", args => {
+    match args {
+      [a, b] => Value::bool(a.eq(b))
+      _ => raise ArgumentCount
+    }
   }),
   special(CallCC),
   special(Apply),
