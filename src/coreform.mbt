@@ -207,7 +207,7 @@ pub let expand_table : @hashmap.HashMap[
         Nil => False
         Pair(l, Nil) => l
         Pair(l, r) => {
-          let var_l = Symbol(Symbol::of("$GEN_SYM"))
+          let var_l = Symbol(Symbol::generate())
           Value::list([
             Value::symbol("let"),
             Value::list([Value::list([var_l, l])]),

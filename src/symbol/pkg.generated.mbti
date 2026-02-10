@@ -7,6 +7,8 @@ package "FlyCloudC/scheme/symbol"
 
 // Types and methods
 type Symbol
+pub fn Symbol::generate() -> Self
+pub fn Symbol::is_generated(Self) -> Bool
 pub fn Symbol::of(String) -> Self
 pub impl Default for Symbol
 pub impl Eq for Symbol
