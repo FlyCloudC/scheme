@@ -1,72 +1,72 @@
 ///|
 pub(open) trait ToSexp {
   #as_free_fn
-  to_sexp(Self) -> Value
+  fn to_sexp(Self) -> Value
 }
 
 ///|
 pub(all) suberror FromSexpError {
   FromSexpError(Value)
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub(open) trait FromSexp {
   #as_free_fn
-  from_sexp(Value) -> Self raise FromSexpError
+  fn from_sexp(Value) -> Self raise FromSexpError
 }
 
 ///|
-pub impl ToSexp for Value with to_sexp(self) {
+pub impl ToSexp for Value with fn to_sexp(self) {
   self
 }
 
 ///|
-pub impl ToSexp for Int with to_sexp(self) {
+pub impl ToSexp for Int with fn to_sexp(self) {
   Int(self)
 }
 
 ///|
-pub impl ToSexp for Double with to_sexp(self) {
+pub impl ToSexp for Double with fn to_sexp(self) {
   Double(self)
 }
 
 ///|
-pub impl ToSexp for Bool with to_sexp(self) {
+pub impl ToSexp for Bool with fn to_sexp(self) {
   Value::bool(self)
 }
 
 ///|
-pub impl ToSexp for Symbol with to_sexp(self) {
+pub impl ToSexp for Symbol with fn to_sexp(self) {
   Symbol(self)
 }
 
 ///|
-pub impl ToSexp for String with to_sexp(self) {
+pub impl ToSexp for String with fn to_sexp(self) {
   String(self)
 }
 
 ///|
-pub impl[A : ToSexp] ToSexp for Array[A] with to_sexp(self) {
+pub impl[A : ToSexp] ToSexp for Array[A] with fn to_sexp(self) {
   self.rev_fold(init=Nil, (acc, x) => Pair(x.to_sexp(), acc))
 }
 
 ///|
-pub impl[A : ToSexp] ToSexp for FixedArray[A] with to_sexp(self) {
+pub impl[A : ToSexp] ToSexp for FixedArray[A] with fn to_sexp(self) {
   self.rev_fold(init=Nil, (acc, x) => Pair(x.to_sexp(), acc))
 }
 
 ///|
-pub impl[A : ToSexp, B : ToSexp] ToSexp for (A, B) with to_sexp(self) {
+pub impl[A : ToSexp, B : ToSexp] ToSexp for (A, B) with fn to_sexp(self) {
   Pair(self.0.to_sexp(), self.1.to_sexp())
 }
 
 ///|
-pub impl[A : ToSexp, B : ToSexp] ToSexp for Iter2[A, B] with to_sexp(self) {
+pub impl[A : ToSexp, B : ToSexp] ToSexp for Iter2[A, B] with fn to_sexp(self) {
   to_sexp(self.to_array())
 }
 
 ///|
-pub impl ToSexp for Json with to_sexp(self) {
+pub impl ToSexp for Json with fn to_sexp(self) {
   match self {
     Null => Nil
     True => True
@@ -85,7 +85,7 @@ pub impl ToSexp for Json with to_sexp(self) {
 }
 
 ///|
-pub impl FromSexp for Json with from_sexp(self) {
+pub impl FromSexp for Json with fn from_sexp(self) {
   match self {
     Nil => []
     True => true
@@ -94,18 +94,20 @@ pub impl FromSexp for Json with from_sexp(self) {
     Symbol(s) => Json::string(s.to_string())
     Pair(l, r) => {
       let res = [from_sexp(l)]
-      loop r {
-        Nil => Json::array(res)
-        Pair(l, r) => {
-          res.push(from_sexp(l))
-          continue r
-        }
-        r =>
-          {
-            "type": "inproper list",
-            "ls": Json::array(res),
-            "r": (from_sexp(r) : Json),
+      for r = r {
+        match r {
+          Nil => break Json::array(res)
+          Pair(l, r) => {
+            res.push(from_sexp(l))
+            continue r
           }
+          r =>
+            break {
+              "type": "inproper list",
+              "ls": Json::array(res),
+              "r": (from_sexp(r) : Json),
+            }
+        }
       }
     }
     Double(d) => { "type": "double", "value": Json::number(d) }
@@ -128,7 +130,7 @@ test "json" {
     ["fact", "x"],
     ["if", ["=", "x", 0], 1, ["*", "x", ["fact", ["-", "x", 1]]]],
   ]
-  assert_eq(j0, j0 |> to_sexp |> from_sexp)
+  @debug.assert_eq(j0, j0 |> to_sexp |> from_sexp)
   let s0 : Value = Vector([
     Double(1),
     Int(2),

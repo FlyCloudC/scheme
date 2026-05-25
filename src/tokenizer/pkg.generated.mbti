@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "FlyCloudC/scheme/tokenizer"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn read(StringView) -> Array[(Token, Int, Int)] raise ReadException
 
@@ -9,8 +13,7 @@ pub suberror ReadException {
   UnterminatedString(StringView)
   InvalidStringEscaping(StringView)
   InvalidAfterSharp(StringView)
-}
-pub impl Show for ReadException
+} derive(@debug.Debug)
 
 // Types and methods
 pub(all) enum Token {
@@ -25,9 +28,7 @@ pub(all) enum Token {
   Double(Double)
   Symbol(String)
   String(String)
-}
-pub impl Eq for Token
-pub impl Show for Token
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

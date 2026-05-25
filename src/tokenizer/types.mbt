@@ -3,7 +3,7 @@ pub suberror ReadException {
   UnterminatedString(StringView)
   InvalidStringEscaping(StringView)
   InvalidAfterSharp(StringView)
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub(all) enum Token {
@@ -25,4 +25,4 @@ pub(all) enum Token {
   Double(Double)
   Symbol(String)
   String(String)
-} derive(Show, Eq)
+} derive(Debug, Eq)

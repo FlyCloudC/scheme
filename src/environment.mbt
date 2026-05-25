@@ -1,5 +1,5 @@
 ///|
-pub impl Show for Environment with output(self, logger) {
+pub impl Show for Environment with fn output(self, logger) {
   logger.write_string("+frame")
   match self.closure {
     Some({ name: Some(name), .. }) => logger.write_string("(\{name})")
@@ -78,12 +78,12 @@ pub fn Environment::extend(
   values : FixedArray[Value],
   closure : Closure,
 ) -> Environment {
-  let binds = @hashmap.new(capacity=names.length())
+  let binds = @hashmap.HashMap([], capacity=names.length())
   values.eachi(fn(i, v) { binds[names[i]] = v })
   { binds, next: Some(self), closure: Some(closure) }
 }
 
 ///|
 pub fn Environment::base() -> Environment {
-  { next: None, binds: @hashmap.new(), closure: None }
+  { next: None, binds: @hashmap.HashMap([]), closure: None }
 }

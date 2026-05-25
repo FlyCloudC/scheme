@@ -1,10 +1,10 @@
 ///|
-impl Default for CoreForm with default() {
+impl Default for CoreForm with fn default() {
   SelfEval(Nil)
 }
 
 ///|
-pub impl ToSexp for CoreForm with to_sexp(self) {
+pub impl ToSexp for CoreForm with fn to_sexp(self) {
   let s = Value::symbol
   match self {
     SelfEval(v) => v
@@ -24,7 +24,7 @@ pub impl ToSexp for CoreForm with to_sexp(self) {
 }
 
 ///|
-pub impl FromSexp for CoreForm with from_sexp(self) {
+pub impl FromSexp for CoreForm with fn from_sexp(self) {
   self.to_core_form()
 }
 
@@ -51,14 +51,17 @@ pub fn Value::to_core_form(self : Value) -> CoreForm raise FromSexpError {
     }
   }
   let to_define = fn(r) -> CoreForm raise FromSexpError {
-    loop r {
-      Pair(Pair(fname, parms), bodys) =>
-        continue Pair(
-            fname,
-            Pair(Pair(Value::symbol("lambda"), Pair(parms, bodys)), Nil),
-          )
-      Pair(Symbol(name), Pair(e1, Nil)) => Define(name, e1.to_core_form())
-      _ => raise FromSexpError(self)
+    for r = r {
+      match r {
+        Pair(Pair(fname, parms), bodys) =>
+          continue Pair(
+              fname,
+              Pair(Pair(Value::symbol("lambda"), Pair(parms, bodys)), Nil),
+            )
+        Pair(Symbol(name), Pair(e1, Nil)) =>
+          break Define(name, e1.to_core_form())
+        _ => raise FromSexpError(self)
+      }
     }
   }
   let proper_list_length = fn(ls : Value) raise FromSexpError {

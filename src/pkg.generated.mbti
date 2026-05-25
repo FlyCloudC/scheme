@@ -4,6 +4,7 @@ package "FlyCloudC/scheme"
 import {
   "FlyCloudC/scheme/tokenizer",
   "FlyCloudC/symbol",
+  "moonbitlang/core/debug",
   "moonbitlang/core/hashmap",
 }
 
@@ -27,16 +28,14 @@ pub let vector_primitive : ReadOnlyArray[(@symbol.Symbol, Value)]
 // Errors
 pub(all) suberror FromSexpError {
   FromSexpError(Value)
-}
-pub impl Show for FromSexpError
+} derive(@debug.Debug)
 
 pub suberror ParseException {
   UnexpectedToken(@tokenizer.Token)
   MoreThanOneAfterDot(@tokenizer.Token)
   UnexpectedEndOfInput
   ReadException(@tokenizer.ReadException)
-}
-pub impl Show for ParseException
+} derive(@debug.Debug)
 
 pub(all) suberror SchemeException {
   UndefineVar(@symbol.Symbol)
@@ -45,8 +44,7 @@ pub(all) suberror SchemeException {
   TypeError(Int)
   InvalidArgument(Int)
   DevideZero
-}
-pub impl Show for SchemeException
+} derive(@debug.Debug)
 
 type SyntaxError
 
@@ -69,12 +67,11 @@ pub enum CoreForm {
   Apply(CoreForm, FixedArray[CoreForm])
   Set(@symbol.Symbol, CoreForm)
   Define(@symbol.Symbol, CoreForm)
-}
+} derive(@debug.Debug)
 #as_free_fn
 pub fn CoreForm::compile(Self) -> Inst
 pub impl FromSexp for CoreForm
 pub impl ToSexp for CoreForm
-pub impl Show for CoreForm
 
 pub(all) struct Environment {
   binds : @hashmap.HashMap[@symbol.Symbol, Value]
@@ -154,19 +151,20 @@ pub impl ToSexp for Value
 pub impl Default for Value
 pub impl Eq for Value
 pub impl Show for Value
+pub impl @debug.Debug for Value
 
 // Type aliases
 
 // Traits
 pub(open) trait FromSexp {
   #as_free_fn
-  from_sexp(Value) -> Self raise FromSexpError
+  fn from_sexp(Value) -> Self raise FromSexpError
 }
 pub impl FromSexp for Json
 
 pub(open) trait ToSexp {
   #as_free_fn
-  to_sexp(Self) -> Value
+  fn to_sexp(Self) -> Value
 }
 pub impl ToSexp for Bool
 pub impl ToSexp for Int

@@ -110,9 +110,10 @@ test "proper tail call" {
   let inst_def_f = parse(code)[0].to_core_form().compile()
   let vm = VM::new(inst=inst_def_f, env=Environment::base())
   let stack_length = () => {
-    loop (vm.stack, 0) {
-      (Some(s), i) => continue (s.stack, i + 1)
-      (None, i) => i
+    for frame = vm.stack, i = 0; frame is Some(f); frame = f.stack {
+      continue f.stack, i + 1
+    } nobreak {
+      i
     }
   }
   while !(vm.next is Apply) {

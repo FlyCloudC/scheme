@@ -8,7 +8,7 @@ pub fn Primitive::name(self : Primitive) -> Symbol {
 }
 
 ///|
-pub impl Show for Primitive with output(self, logger) {
+pub impl Show for Primitive with fn output(self, logger) {
   logger
   ..write_string("#<procedure ")
   ..write_object(self.name())
@@ -16,7 +16,7 @@ pub impl Show for Primitive with output(self, logger) {
 }
 
 ///|
-pub impl Show for Closure with output(self, logger) {
+pub impl Show for Closure with fn output(self, logger) {
   match self.name {
     None => logger.write_string("#<procedure>")
     Some(name) =>
@@ -29,7 +29,7 @@ pub impl Show for Closure with output(self, logger) {
 // +---------------------------+
 
 ///|
-pub impl Default for Value with default() {
+pub impl Default for Value with fn default() {
   Value::symbol("done")
 }
 
@@ -47,7 +47,7 @@ pub fn Value::eq(self : Value, other : Value) -> Bool {
 }
 
 ///|
-pub impl Eq for Value with equal(self, other) {
+pub impl Eq for Value with fn equal(self, other) {
   match (self, other) {
     (Nil, Nil) | (True, True) | (False, False) => true
     (Int(a), Int(b)) => Int::equal(a, b)
@@ -72,18 +72,21 @@ fn recur_equal(a : Value, b : Value) -> Bool {
 }
 
 ///|
-pub impl Show for Value with output(self, logger) {
+pub impl Show for Value with fn output(self, logger) {
   match self {
     Nil => logger.write_string("()")
     Pair(l, r) => {
       logger..write_char('(').write_object(l)
-      loop r {
-        Nil => logger.write_char(')')
-        Pair(l, r) => {
-          logger..write_char(' ').write_object(l)
-          continue r
+      for r = r {
+        match r {
+          Nil => break logger.write_char(')')
+          Pair(l, r) => {
+            logger..write_char(' ').write_object(l)
+            continue r
+          }
+          v =>
+            break logger..write_string(" . ")..write_object(v).write_char(')')
         }
-        v => logger..write_string(" . ")..write_object(v).write_char(')')
       }
     }
     Int(i) => logger.write_object(i)
@@ -97,6 +100,11 @@ pub impl Show for Value with output(self, logger) {
     Continuation(_) => logger.write_string("#<continuation>")
     Vector(a) => logger.write_iter(a.iter(), prefix="#(", sep=" ", suffix=")")
   }
+}
+
+///|
+pub impl Debug for Value with fn to_repr(self) {
+  Repr::opaque_("Value", Repr::literal(self.to_string()))
 }
 
 ///|

@@ -20,32 +20,36 @@ pub fn parse(code : StringView) -> Array[Value] raise ParseException {
   }
   and parse_list = fn(rest) raise ParseException {
     let res = []
-    loop rest {
-      [Rp, .. rest] => (to_sexp(res), rest)
-      [Dot, .. rest] => {
-        let (tail, rest) = parse_value(rest)
-        match rest {
-          [] => raise UnexpectedEndOfInput
-          [Rp, .. rest] =>
-            (res.rev_fold(init=tail, (acc, x) => Pair(x, acc)), rest)
-          [t, ..] => raise MoreThanOneAfterDot(t)
+    for rest = rest {
+      match rest {
+        [Rp, .. rest] => break (to_sexp(res), rest)
+        [Dot, .. rest] => {
+          let (tail, rest) = parse_value(rest)
+          match rest {
+            [] => raise UnexpectedEndOfInput
+            [Rp, .. rest] =>
+              break (res.rev_fold(init=tail, (acc, x) => Pair(x, acc)), rest)
+            [t, ..] => raise MoreThanOneAfterDot(t)
+          }
         }
-      }
-      rest => {
-        let (v, rest) = parse_value(rest)
-        res.push(v)
-        continue rest
+        rest => {
+          let (v, rest) = parse_value(rest)
+          res.push(v)
+          continue rest
+        }
       }
     }
   }
   and parse_vector = fn(rest) raise ParseException {
     let res = []
-    loop rest {
-      [Rp, .. rest] => (Vector(FixedArray::from_array(res)), rest)
-      rest => {
-        let (v, rest) = parse_value(rest)
-        res.push(v)
-        continue rest
+    for rest = rest {
+      match rest {
+        [Rp, .. rest] => break (Vector(FixedArray::from_array(res)), rest)
+        rest => {
+          let (v, rest) = parse_value(rest)
+          res.push(v)
+          continue rest
+        }
       }
     }
   }
@@ -78,30 +82,55 @@ test "parse then to_string = identify" {
 
 ///|
 test "parse list" {
-  inspect(try? parse("(1)"), content="Ok([(1)])")
-  inspect(try? parse("(2)("), content="Err(UnexpectedEndOfInput)")
-  inspect(try? parse("(3 (4 5)"), content="Err(UnexpectedEndOfInput)")
-  inspect(try? parse("(3 (4 5))"), content="Ok([(3 (4 5))])")
-  inspect(try? parse("(3 (4 5)))"), content="Err(UnexpectedToken(Rp))")
+  debug_inspect(try? parse("(1)"), content=(
+    #|Ok([<Value: (1)>])
+  ))
+  debug_inspect(try? parse("(2)("), content="Err(UnexpectedEndOfInput)")
+  debug_inspect(try? parse("(3 (4 5)"), content="Err(UnexpectedEndOfInput)")
+  debug_inspect(try? parse("(3 (4 5))"), content=(
+    #|Ok([<Value: (3 (4 5))>])
+  ))
+  debug_inspect(try? parse("(3 (4 5)))"), content="Err(UnexpectedToken(Rp))")
 }
 
 ///|
 test "parse dot list" {
-  inspect(try? parse("(1 2 . 3 4)"), content="Err(MoreThanOneAfterDot(Int(4)))")
-  inspect(try? parse("(1 2 .)"), content="Err(UnexpectedToken(Rp))")
-  inspect(try? parse("(1 2 . )"), content="Err(UnexpectedToken(Rp))")
-  inspect(parse("(1 2 . 3)"), content="[(1 2 . 3)]")
-  inspect(parse("(1 2 .3)"), content="[(1 2 . 3)]")
+  debug_inspect(
+    try? parse("(1 2 . 3 4)"),
+    content="Err(MoreThanOneAfterDot(Int(4)))",
+  )
+  debug_inspect(try? parse("(1 2 .)"), content="Err(UnexpectedToken(Rp))")
+  debug_inspect(try? parse("(1 2 . )"), content="Err(UnexpectedToken(Rp))")
+  debug_inspect(parse("(1 2 . 3)"), content=(
+    #|[<Value: (1 2 . 3)>]
+  ))
+  debug_inspect(parse("(1 2 .3)"), content=(
+    #|[<Value: (1 2 . 3)>]
+  ))
 }
 
 ///|
 test "parse quote" {
-  inspect(try? parse("'"), content="Err(UnexpectedEndOfInput)")
-  inspect(parse("'a"), content="[(quote a)]")
-  inspect(parse("'()"), content="[(quote ())]")
-  inspect(parse("''a"), content="[(quote (quote a))]")
-  inspect(parse("'(a 2)"), content="[(quote (a 2))]")
-  inspect(parse("''(a 2)"), content="[(quote (quote (a 2)))]")
-  inspect(parse("f'a"), content="[f, (quote a)]")
-  inspect(parse("f'a'b"), content="[f, (quote a), (quote b)]")
+  debug_inspect(try? parse("'"), content="Err(UnexpectedEndOfInput)")
+  debug_inspect(parse("'a"), content=(
+    #|[<Value: (quote a)>]
+  ))
+  debug_inspect(parse("'()"), content=(
+    #|[<Value: (quote ())>]
+  ))
+  debug_inspect(parse("''a"), content=(
+    #|[<Value: (quote (quote a))>]
+  ))
+  debug_inspect(parse("'(a 2)"), content=(
+    #|[<Value: (quote (a 2))>]
+  ))
+  debug_inspect(parse("''(a 2)"), content=(
+    #|[<Value: (quote (quote (a 2)))>]
+  ))
+  debug_inspect(parse("f'a"), content=(
+    #|[<Value: f>, <Value: (quote a)>]
+  ))
+  debug_inspect(parse("f'a'b"), content=(
+    #|[<Value: f>, <Value: (quote a)>, <Value: (quote b)>]
+  ))
 }

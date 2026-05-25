@@ -41,51 +41,58 @@ fn read_next_token(
 
 ///|
 fn read_number(c : Char, rest : StringView) -> (Token, StringView) {
-  loop (rest, c.to_int() - '0') {
-    (['0'..='9' as c, .. rest], acc) =>
-      continue (rest, acc * 10 + (c.to_int() - '0'))
-    (['.', .. rest], acc) => read_double(acc, rest)
-    (rest, acc) => (Int(acc), rest)
+  for rest = rest, acc = c.to_int() - '0' {
+    match rest {
+      ['0'..='9' as c, .. rest] => continue rest, acc * 10 + (c.to_int() - '0')
+      ['.', .. rest] => break read_double(acc, rest)
+      _ => break (Int(acc), rest)
+    }
   }
 }
 
 ///|
 fn read_double(acc : Int, rest : StringView) -> (Token, StringView) {
-  loop (rest, acc.to_double(), 0.1) {
-    (['0'..='9' as c, .. rest], acc, i) =>
-      continue (rest, acc + i * (c.to_int() - '0').to_double(), i / 10)
-    (rest, acc, _) => (Double(acc), rest)
+  for rest = rest, acc = acc.to_double(), i = 0.1 {
+    match rest {
+      ['0'..='9' as c, .. rest] =>
+        continue rest, acc + i * (c.to_int() - '0').to_double(), i / 10
+      _ => break (Double(acc), rest)
+    }
   }
 }
 
 ///|
 fn read_comment(rest : StringView) -> StringView {
-  loop rest {
-    [] => []
-    ['\n', .. rest] => rest
-    [_, .. rest] => continue rest
+  for rest = rest {
+    match rest {
+      [] => break []
+      ['\n', .. rest] => break rest
+      [_, .. rest] => continue rest
+    }
   }
 }
 
 ///|
 fn read_string(rest : StringView) -> (Token, StringView) raise ReadException {
   let b = StringBuilder::new()
-  loop rest {
-    ['\\', .. rest] =>
-      match rest {
-        ['\\' | '"' as c, .. rest] => {
-          b.write_char(c)
-          continue rest
+  for rest = rest {
+    match rest {
+      ['\\', .. rest] =>
+        match rest {
+          ['\\' | '"' as c, .. rest] => {
+            b.write_char(c)
+            continue rest
+          }
+          [_, ..] => raise InvalidStringEscaping(rest)
+          [] => raise UnterminatedString(rest)
         }
-        [_, ..] => raise InvalidStringEscaping(rest)
-        [] => raise UnterminatedString(rest)
+      ['"', .. rest] => break (String(b.to_string()), rest)
+      [c, .. rest] => {
+        b.write_char(c)
+        continue rest
       }
-    ['"', .. rest] => (String(b.to_string()), rest)
-    [c, .. rest] => {
-      b.write_char(c)
-      continue rest
+      [] as rest => raise UnterminatedString(rest)
     }
-    [] as rest => raise UnterminatedString(rest)
   }
 }
 
@@ -93,12 +100,14 @@ fn read_string(rest : StringView) -> (Token, StringView) raise ReadException {
 fn read_symbol(c : Char, rest : StringView) -> (Token, StringView) {
   let b = StringBuilder::new()
   b.write_char(c)
-  loop rest {
-    [] | [' ' | '\n' | '\r' | '\t' | '(' | ')' | '\'' | '#', ..] as rest =>
-      (Symbol(b.to_string()), rest)
-    [c, .. rest] => {
-      b.write_char(c)
-      continue rest
+  for rest = rest {
+    match rest {
+      [] | [' ' | '\n' | '\r' | '\t' | '(' | ')' | '\'' | '#', ..] as rest =>
+        break (Symbol(b.to_string()), rest)
+      [c, .. rest] => {
+        b.write_char(c)
+        continue rest
+      }
     }
   }
 }
@@ -112,7 +121,7 @@ test "fact" {
     #|      (* x (fact (- x 1)))))
   )
   |> read()
-  |> assert_eq([
+  |> @debug.assert_eq([
     (Lp, 0, 1),
     (Symbol("define"), 1, 7),
     (Lp, 8, 9),
@@ -153,7 +162,7 @@ test "special" {
     #|("ada" 1.2 "wadwa\";;'")
   )
   |> read()
-  |> assert_eq([
+  |> @debug.assert_eq([
     (Quote, 0, 1),
     (Symbol("a"), 1, 2),
     (Quote, 3, 4),
@@ -179,7 +188,7 @@ test "unicode" {
     #|(中 "🐇")
   )
   |> read()
-  |> assert_eq([
+  |> @debug.assert_eq([
     (Lp, 0, 1),
     (Symbol("中"), 1, 2),
     (String("🐇"), 3, 7),

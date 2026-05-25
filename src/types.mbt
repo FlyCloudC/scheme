@@ -9,7 +9,7 @@ pub(all) suberror SchemeException {
   TypeError(Int)
   InvalidArgument(Int)
   DevideZero
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub struct Closure {
@@ -60,7 +60,7 @@ pub enum CoreForm {
   Apply(CoreForm, FixedArray[CoreForm])
   Set(Symbol, CoreForm)
   Define(Symbol, CoreForm)
-} derive(Show)
+} derive(Debug)
 
 // -----------------------------
 // |            VM             |
@@ -111,4 +111,4 @@ pub suberror ParseException {
   MoreThanOneAfterDot(Token)
   UnexpectedEndOfInput
   ReadException(@tokenizer.ReadException)
-} derive(Show)
+} derive(Debug)

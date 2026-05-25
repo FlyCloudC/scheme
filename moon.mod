@@ -1,0 +1,21 @@
+name = "FlyCloudC/scheme"
+
+version = "0.5.0"
+
+import {
+  "FlyCloudC/symbol@0.3.0",
+}
+
+readme = "README.md"
+
+repository = "https://github.com/FlyCloudC/scheme"
+
+license = "Apache-2.0"
+
+keywords = [ "scheme", "s-expression", "interpreter" ]
+
+description = "A Scheme interpreter implemented in Moonbit for teaching purposes"
+
+options(
+  source: "src",
+)

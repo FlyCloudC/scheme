@@ -2,6 +2,7 @@ import {
   "FlyCloudC/scheme/tokenizer",
   "FlyCloudC/symbol",
   "moonbitlang/core/hashmap",
+  "moonbitlang/core/debug",
 }
 
 options(
