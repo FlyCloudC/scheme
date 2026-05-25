@@ -1,6 +1,6 @@
 name = "FlyCloudC/scheme"
 
-version = "0.5.0"
+version = "0.6.0"
 
 import {
   "FlyCloudC/symbol@0.3.0",
